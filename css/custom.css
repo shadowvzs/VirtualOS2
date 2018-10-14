@@ -1,0 +1,156 @@
+html {
+	position: relative;
+	height: 100vh;
+	width: 100vw;
+}
+
+body {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+}
+
+section {
+	background-color: yellow;
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	width: 100vw;
+}
+
+#desktop {
+	position: relative;
+	background-color: red;
+	flex: 1;
+	display: block;
+}
+
+#taskbar {
+	position: relative;
+	background-color: blue;
+	display: block;
+	flex: 0;
+	border-top: 1px solid rgba(150,150,150,150.8);
+	z-index: 1;
+	background-color: rgba(0,0,0,0.9);
+
+}
+
+.desktop-container,
+.desktop-background-gradient,
+.desktop-background-image {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.desktop-container {
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	padding: 20px;
+}
+
+.taskbar-container {
+	position: relative;
+	height: 36px;
+	padding: 2px 0;
+	display: flex;
+	align-items: center;
+}
+
+
+.icon {
+	position: relative;
+	width: 70px;
+	height: 86px;
+	text-align: center;
+	opacity: 0.75;
+	margin: 0 10px;
+	background-color: wheat;
+	border: 1px solid black;
+	font-size: 20px;
+}
+
+.btn-task {
+	position: relative;
+	min-width: 30px;
+	height: 30px;
+	opacity: 0.75;
+	margin: 0 2px;
+	padding: 0 5px;
+	color: #fff;
+	display: inline-block;
+	border: 1px dotted rgba(150, 150, 150, 0);
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.btn-task:hover {
+	position: static;
+	border: 1px dotted rgba(150, 150, 150, 1);
+	background: -webkit-linear-gradient(rgba(50,50,50,0.8), rgba(100,100,100,0.8), rgba(50,50,50,0.8));
+	background: -o-linear-gradient(rgba(50,50,50,0.8), rgba(100,100,100,0.8), rgba(50,50,50,0.8));
+	background: -moz-linear-gradient(rgba(50,50,50,0.8), rgba(100,100,100,0.8), rgba(50,50,50,0.8));
+	background: linear-gradient(rgba(50,50,50,0.8), rgba(100,100,100,0.8), rgba(50,50,50,0.8));
+}
+
+.btn-task .mini-icon {
+	height: 28px;
+	width: 28px;
+	transform: translateY(-2px);
+	vertical-align: middle;
+	display: inline-block;
+}
+
+.btn-task .btn-text,
+	.btn-task.btn-text {
+	position: relative;
+	font-size: 14px;
+	line-height: 30px;
+	padding: 0 10px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+
+.task-app-group {
+	position: relative;
+	display: inline-flex;
+	flex-direction: column-reverse;
+}
+
+.task-win-group {
+	flex: 1;
+}
+
+#taskAppList {
+	position: absolute;
+	bottom: 30px;
+	padding: 5px 0;
+	display: none;
+	flex-direction: column-reverse;
+	background-color: rgba(0,0,0,0.75);
+	border-radius: 4px;
+	border: 1px solid black;
+}
+
+
+@media screen and (min-width: 576px) {
+
+.task-app-group {
+	flex-direction: row;
+}
+
+#taskAppList {
+	position: static;
+	display: flex;
+	flex-direction: row;
+	padding: 0;
+	background-color: transparent;
+	border-color: transparent;
+}
+}
