@@ -27,7 +27,7 @@ function Core() {
 		removeScript("script", "components");
 	});
 
-	setTimeout(() => console.log('our loaded components: '+components), 1000);
+	setTimeout(() => console.log('our loaded components: ', components), 1000);
 
 	document.body.onclick = globalClickHandler;
 
