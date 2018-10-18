@@ -20,7 +20,7 @@ section {
 
 #desktop {
 	position: relative;
-	background-color: red;
+	background-color: #aaa;
 	flex: 1;
 	display: block;
 }
@@ -101,7 +101,6 @@ section {
 .btn-task .mini-icon {
 	height: 28px;
 	width: 28px;
-	transform: translateY(-2px);
 	vertical-align: middle;
 	display: inline-block;
 }
@@ -138,19 +137,34 @@ section {
 	border: 1px solid black;
 }
 
+time#clock:hover:after {
+	position: absolute;
+	content: 'Time: ' attr(data-time) ' (GMT' attr(data-timezone) ')\A' attr(data-date);
+	background-color: rgba(0,0,0,0.9);
+	border: 1px solid rgba(150,150,150,0.9);
+	line-height: 1.5em;
+	bottom: 34px;
+	font-weight: bold;
+	font-family: serif;
+	font-size: 12px;
+	border-radius: 8px;
+	white-space:pre;
+	right: 0;
+	padding: 4px 10px;
+}
 
 @media screen and (min-width: 576px) {
 
-.task-app-group {
-	flex-direction: row;
-}
+	.task-app-group {
+		flex-direction: row;
+	}
 
-#taskAppList {
-	position: static;
-	display: flex;
-	flex-direction: row;
-	padding: 0;
-	background-color: transparent;
-	border-color: transparent;
-}
+	#taskAppList {
+		position: static;
+		display: flex;
+		flex-direction: row;
+		padding: 0;
+		background-color: transparent;
+		border-color: transparent;
+	}
 }

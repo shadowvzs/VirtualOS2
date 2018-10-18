@@ -1,34 +1,31 @@
 <html lang="en">
 	<head>
 		<title> My Resume Page </title>
+		<meta charset="UTF-8">
 		<link rel="stylesheet" type="text/css" href="./css/reset.css">
 		<link rel="stylesheet" type="text/css" href="./css/generic.css">
-		<link rel="stylesheet" type="text/css" href="./css/custome.css">
+		<link rel="stylesheet" type="text/css" href="./css/custom.css">
+		<link rel="stylesheet" type="text/css" href="./css/desktop.css">
 	</head>
 	<body>
 		<section id="root">
 			<main id="desktop">
 				<div class="background-image"></div>
 				<div class="background-gradient"></div>
-				<div class="desktop-container">
-					<div class="icon">a</div>
-					<div class="icon">a</div>
-					<div class="icon">a</div>
-					<div class="icon">a</div>
-					<div class="icon">a</div>
-					<div class="icon">a</div>
+				<div class="desktop-container" data-contextmenu="desktopManager.createMenu" data-container="desktop-container" data-id="-1" data-type="free">
+					<!-- icons here -->
 				</div>
 			</main>
 
 			<footer id="taskbar">
-
 				<div class="taskbar-container">
 
-					<figure class="btn-task">
-						<img class="mini-icon" src="img/startmenu/home.png">
-						<figcaption class="btn-text">Start</figcaption>
-					</figure>
-
+					<span class="start-menu-button">
+						<figure class="btn-task">
+							<img class="mini-icon" src="img/startmenu/home.png">
+							<figcaption class="btn-text">Start</figcaption>
+						</figure>
+					</span>
 					<div class="v-divider"></div>
 
 					<div class="task-app-group">
@@ -59,7 +56,7 @@
 					</div>
 
 					<div class="v-divider"></div>
-					<time id="clock" class="btn-task btn-text"> 88:99:99 </time>
+					<time id="clock" class="btn-task btn-text"> 00:00:00 </time>
 				</div>
 			</footer>
 		</section>
