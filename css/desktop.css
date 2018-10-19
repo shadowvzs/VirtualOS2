@@ -78,10 +78,10 @@
 
 .contextMenu ul li {
 	line-height: 1.5em;
-    padding: 5px 20px;
+    padding: 2px 10px;
     cursor: pointer;
     color: #555;
-	font-size: 20px;
+    font-size: 12px;
 }
 
 .contextMenu ul li.disabled {
@@ -92,4 +92,17 @@
 .contextMenu ul li:not(.disabled):hover {
     color: #000;
     background-color: rgba(235,235,255,0.8);
+}
+
+@media screen and (min-width: 778px) {
+    .contextMenu {
+        width: 200px;
+        padding: 10px 0;
+    }
+
+    .contextMenu ul li {
+        padding: 5px 20px;
+        font-size: 20px;
+    }
+
 }

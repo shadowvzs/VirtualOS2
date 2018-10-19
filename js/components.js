@@ -31,7 +31,7 @@ const componentData = {
 			icon: "",
 			launchbar: false,
 			taskbar: false,
-			width: 200,
+			width: "auto",
 			className: 'contextMenu',
 			maxProc: 1,
 			movable: false,
@@ -236,7 +236,7 @@ const componentData = {
 		},
 		desktopManager(settings, shared = false) {
 			const container = document.querySelector(settings.container),
-				{ guid, sec2Date, getPath, components } = shared,
+				{ guid, sec2Date, getPath, components, isEmpty } = shared,
 				datasource = components[settings.relationship.datasource || "null"] || null,
 				cName = settings.constructorName,
 				ds = settings.relationship.datasource;
@@ -326,32 +326,33 @@ const componentData = {
 				}
 
 				const vfs = datasource.getDatabase();
-				if (type == "") {
-					const list = [
-						["New Folder", cName, "execute", [id]],
-						["New File", relationship.clipboard, "addItems", ['fs', id, 'false']],
-						["Arrange Icon", relationship.clipboard, "addItems", ['fs', id, 'true']],
-						["Paste", cName, "paste", [id]],
-						["Settings", cName, "toggleRename", [id]],
+				let list;
+				if (type == "free") {
+					list = [
+						["New Folder", cName, "createNew", [id, 'dir']],
+						["New File", cName, "createNew", [id, 'text']],
+					//	["Arrange Icon", relationship.clipboard, "addItems", ['fs', id, 'true']],
+						["Paste", cName, "paste", [id, type]],
 						["Terminal", cName, "remove", [id]],
+						["Settings", cName, "toggleRename", [id]],
 						["Properties", cName, "details", [id]],
 					];
 
-					if (!clipboard.getItems() || item.type != "dir") {
-						list.splice(3, 1);
+					if (isEmpty(clipboard.getItems())) {
+						list.splice(2, 1);
 					}
 
-				} else {
-					const item = datasource.search(vfs.child, id),
-						list = [
-							["Run", cName, "execute", [id]],
-							["Copy", relationship.clipboard, "addItems", ['fs', id, 'false']],
-							["Cut", relationship.clipboard, "addItems", ['fs', id, 'true']],
-							["Paste", cName, "paste", [id]],
-							["Rename", cName, "toggleRename", [id]],
-							["Delete", cName, "remove", [id]],
-							["Properties", cName, "details", [id]],
-						];
+				} else if (type == "icon") {
+					const item = datasource.search(vfs.child, id);
+					list = [
+						["Run", cName, "execute", [id]],
+						["Copy", relationship.clipboard, "addItems", ['fs', id, 'false']],
+						["Cut", relationship.clipboard, "addItems", ['fs', id, 'true']],
+						["Paste", cName, "paste", [id, type]],
+						["Rename", cName, "toggleRename", [id]],
+						["Delete", cName, "remove", [id]],
+						["Properties", cName, "details", [id]],
+					];
 
 
 					if (item.type == "dir") {
@@ -363,13 +364,15 @@ const componentData = {
 						list.splice(4, 1);
 					}
 
-					if (!clipboard.getItems() || item.type != "dir") {
+					if (isEmpty(clipboard.getItems()) || item.type != "dir") {
 						list[3][1] = false;
 						list.splice(3, 1);
 					}
-
 				}
-				menu.create(ev, list, id );
+
+				if (list) {
+					menu.create(ev, list, id );
+				}
 			}
 
 			function remove(e) {
