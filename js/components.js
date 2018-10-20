@@ -77,6 +77,9 @@ const componentData = {
 			maxProc: 1,
 			movable: false,
 			focusable: false,
+			relationship: {
+				datasource: 'fileSystem'
+			}
 		},
 		fileSystem: {
 			id: "flsstm",
@@ -218,7 +221,7 @@ const componentData = {
 
 
 			function addItems(e) {
-				clipboard = [{...[e.dataset.extra.split("/")]}];
+				clipboard.push(...[e.dataset.extra.split("/")]);
 				return true;
 			}
 
@@ -230,16 +233,16 @@ const componentData = {
 					addItems(e);
 				},
 				clear() {
-
+					clipboard = [];
 				}
 			}
 		},
 		desktopManager(settings, shared = false) {
-			const container = document.querySelector(settings.container),
+			const container = getDOM(settings.container),
 				{ guid, sec2Date, getPath, components, isEmpty } = shared,
-				datasource = components[settings.relationship.datasource || "null"] || null,
 				cName = settings.constructorName,
-				ds = settings.relationship.datasource;
+				relationship = settings.relationship,
+				ds = relationship.datasource;
 			let icons = [];
 
 			function createTooltip(item) {
@@ -256,9 +259,9 @@ const componentData = {
 					Modified at: ${sec2Date(item.lastmodify)}`.replace(/\t/g,'');
 			}
 
-			function CreateDesktopIcon(item, targetContainer = container, newWindow = true){
-				targetContainer.insertAdjacentHTML('beforeend', `<div class="de-icon">
-					<a title="${createTooltip(item)}" data-contextmenu="${cName}.createMenu" data-id="${item.id}" data-container="${settings.container}" data-new="${newWindow}" data-type="icon">
+			function CreateDesktopIcon(item, targetContainer = container, newWindow = true) {
+				targetContainer.insertAdjacentHTML('beforeend', `<div class="de-icon no-select" data-item-id="${item.id}">
+					<a title="${createTooltip(item)}" data-click="${ds}.execute" data-contextmenu="${cName}.createMenu" data-id="${item.id}" data-container="${settings.container}" data-new="${newWindow}" data-type="icon">
 						<div class="DesktopIconImgBox">
 							<img src="${getPath('desktop', item.icon)}" />
 						</div>
@@ -285,6 +288,10 @@ const componentData = {
 				if (childs) {
 					for (const child of childs) {
 						child.classList.toggle('d-none');
+						if (child.tagName == "INPUT") {
+							child.focus();
+							child.select();
+						}
 					}
 				}
 			}
@@ -317,7 +324,6 @@ const componentData = {
 			function createMenu(e, ev) {
 				const { id, container = false, type = "icon" } = e.dataset,
 					datasource = components[ds],
-					relationship = settings.relationship,
 					clipboard = components[relationship.clipboard || "null"] || null;
 					menu = components[relationship.menu || "null"] || null;
 
@@ -329,10 +335,10 @@ const componentData = {
 				let list;
 				if (type == "free") {
 					list = [
-						["New Folder", cName, "createNew", [id, 'dir']],
-						["New File", cName, "createNew", [id, 'text']],
+						["New Folder", cName, "createNew", [id, container, 'dir']],
+						["New File", cName, "createNew", [id, container, 'html']],
+						["Paste", cName, "paste", [id, container, type]],
 					//	["Arrange Icon", relationship.clipboard, "addItems", ['fs', id, 'true']],
-						["Paste", cName, "paste", [id, type]],
 						["Terminal", cName, "remove", [id]],
 						["Settings", cName, "toggleRename", [id]],
 						["Properties", cName, "details", [id]],
@@ -345,7 +351,7 @@ const componentData = {
 				} else if (type == "icon") {
 					const item = datasource.search(vfs.child, id);
 					list = [
-						["Run", cName, "execute", [id]],
+						["Run", ds, "execute", [id]],
 						["Copy", relationship.clipboard, "addItems", ['fs', id, 'false']],
 						["Cut", relationship.clipboard, "addItems", ['fs', id, 'true']],
 						["Paste", cName, "paste", [id, type]],
@@ -389,12 +395,89 @@ const componentData = {
 				if (!id) {
 					return console.log("Id not exist on parent elem!");
 				}
-				return document.body.querySelector(`div.icon-text[data-id="${id}"]`);
+				return getDOM(`div.icon-text[data-id="${id}"]`);
+			}
+
+			function getDOM(selector) {
+				return document.body.querySelector(selector);
+			}
+
+			function createNew(e) {
+				const [id, container, type] = e.dataset.extra.split('/'),
+					time = Math.round(+new Date() / 1000),
+					icons = {
+						dir: "folder",
+						html: "file"
+					},
+					datasource = components[ds];
+
+				const newItem = {
+					name: "New Folder",
+					id: guid(),
+					description: "This is a new folder",
+					icon: icons[type],
+					type: type,
+					readonly: false,
+					onstartmenu: false,
+					ondesktop: id == -1,
+					createtime: time,
+					lastmodify:1503812702,
+				}
+
+				if (datasource.add([newItem], id)) {
+					CreateDesktopIcon(newItem, getDOM(container), true);
+				}
+			}
+
+			function paste(e) {
+				const [targetId, container, targetType] = e.dataset.extra.split('/'),
+					time = Math.round(+new Date() / 1000),
+					icons = {
+						dir: "folder",
+						html: "file"
+					},
+					datasource = components[ds],
+					clipboard = components[relationship.clipboard],
+					items = clipboard.getItems();
+				let containerDOM,
+					newWindow;
+				if (!clipboard.getItems()) {
+					return console.log("Clipboard is empty");
+				}
+
+				if (targetType == "free") {
+					containerDOM = getDOM(container)
+					if (!containerDOM) {
+						return console.log("Container not exist!");
+					}
+					newWindow = targetId == -1 ? true : false;
+				}
+
+				for (let [sourceType, itemId, remove] of items) {
+					if (sourceType == "fs") {
+						remove = remove == "true";
+						const item = datasource.copyItem(targetId, itemId, remove);
+						if (item && targetType == "free") {
+							CreateDesktopIcon(item, containerDOM, newWindow);
+							if (remove) {
+								const oldItem = containerDOM.querySelector(`[data-item-id="${itemId}"]`);
+								if (oldItem) { oldItem.remove(); }
+							}
+						}
+					}
+				}
+				clipboard.clear()
 			}
 
 			return {
+				createNew(e, ev) {
+					createNew(e);
+				},
 				createMenu(e, ev) {
 					createMenu(e, ev);
+				},
+				paste(e, ev) {
+					paste(e);
 				},
 				rename(e) {
 					rename(e);
@@ -412,12 +495,86 @@ const componentData = {
 		},
 
 		startMenuManager(settings, shared = false) {
+			const taskbar = document.body.querySelector('footer#taskbar'),
+				cName = settings.constructorName,
+				ds = settings.relationship.datasource;
+			let startMenu, selected = false;
+
+			const template = {
+				startMenu(itemList) {
+					const [mainList, subList] = template.createList(itemList);
+					return `<div class="start-menu no-select">
+						<div class="start-menu-title">
+							<h3> Welcome Guest! </h3>
+						</div>
+						<div class="sub-item-list">
+							${subList}
+						</div>
+						<div class="main-item-list">
+							<ul>${mainList}</ul>
+						</div>
+					</div>`;
+				},
+				createList(itemList) {
+					let mainList = "",
+						subList = "";
+					for (const item of itemList) {
+						mainList += template.mainList(item);
+						subList += template.subList(item);
+					}
+					return [mainList, subList];
+
+				},
+				mainList(item) {
+					return `<li data-click="${cName}.select" data-extra="${item.id}">
+							<img src="./img/startmenu/${item.icon}.png" width="22" height="22"> ${item.name}
+						</li>`;
+				},
+				subList(item) {
+					return `<ul class="d-none" data-item-id="${item.id}">
+						${item.child.map(item => template.subItem(item)).join("")}
+					</ul>`;
+				},
+				subItem(item) {
+					return `<li data-click="${ds}.execute" data-id="${item.id}" data-new="true" data-type="startSubIcon">
+							<img src="./img/startmenu/${item.icon}.png"> ${item.name}
+						</li>`;
+				}
+			}
+
 
 			function loadContent(list) {
+				taskbar.insertAdjacentHTML('afterbegin', template.startMenu(list));
+				startMenu = taskbar.querySelector('.start-menu');
+				select(list[0].id);
+			}
 
+			function toggleList(id) {
+				const main = startMenu.querySelector(`li[data-click="${cName}.select"][data-extra="${id}"]`);
+				if (main) {
+					main.classList.toggle('active');
+				}
+				const sub = startMenu.querySelector(`ul[data-item-id="${id}"]`);
+				if (sub) {
+					sub.classList.toggle('d-none');
+				}
+			}
+
+			function select(id) {
+				if (selected) {
+					toggleList(selected);
+				}
+				toggleList(id);
+				selected = id;
 			}
 
 			return {
+				select(e) {
+					select(e.dataset.extra);
+				},
+				toggle() {
+					startMenu.classList.toggle('show');
+				},
 				remove() {
 
 				},
@@ -428,8 +585,7 @@ const componentData = {
 		},
 
 		fileSystem(settings, shared = false) {
-
-			const {req, components} = shared,
+			const {req, components, guid, objClone, assoc} = shared,
 				relationship = settings.relationship;
 			let vfs;
 
@@ -502,11 +658,94 @@ const componentData = {
 				return null;
 			}
 
+			function add(items, to) {
+				let target = to == -1 ? vfs : searchInVfs(vfs.child, id);
+				if (!target) {
+					return false;
+				}
+				if (!target.child) {
+					target.child = [];
+				}
+				target.child.push(...items);
+				save();
+				return true;
+			}
+
 			function save() {
 				return true;
 			}
 
+			function prepareItems(items, remove) {
+				let i, max = items.length;
+				for (i = 0; i < max; i++) {
+					items[i].id = guid();
+					if (!remove) {
+						items[i].name = items[i].name + " copy";
+					}
+					if (items[i].child) {
+						prepareItems(items[i].child, remove);
+					}
+				}
+				return null;
+			}
+
+			function prepareItem(item, remove) {
+				if (Array.isArray(item)) {
+					return prepareItems(item, remove);
+				}
+
+				item.id = guid();
+				if (!remove) {
+					item.name = item.name + " copy";
+				}
+
+				if (item.child && item.child.length > 0) {
+					return prepareItems(item.child, remove);
+				}
+				return;
+			}
+
+			function copyItem(targetId, sourceId, removeItem = false) {
+				const s = searchInVfs(vfs.child, sourceId);
+				if (!s) { return null; }
+				const itemCopy = objClone(s);
+				prepareItem(itemCopy, removeItem);
+				if (!add([itemCopy], targetId)) {
+					return false;
+				};
+				if (removeItem) {
+					deleteItem(vfs.child, sourceId);
+				}
+				return itemCopy;
+			}
+
+
+			function execute(e, ev) {
+				const id = e.dataset.id;
+				if (!id) {
+					return console.log("This file not have id!");
+				}
+				const item = searchInVfs(vfs.child, id);
+				if (!item) {
+					return console.log("File corrupt or not exist anymore!");
+				}
+
+				alert('open with: ' +assoc[item.type]);
+			}
+
 			return {
+				add(items, to) {
+					return add(items, to);
+				},
+				copyItem(targetId, sourceId, removeItem = false) {
+					return copyItem(targetId, sourceId, removeItem);
+				},
+				execute(e, ev) {
+					execute(e, ev);
+				},
+				get(id) {
+					return searchInVfs(vfs.child, id);
+				},
 				search(items, id) {
 					return searchInVfs(items, id);
 				},

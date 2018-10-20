@@ -12,16 +12,17 @@
 			<main id="desktop">
 				<div class="background-image"></div>
 				<div class="background-gradient"></div>
-				<div class="desktop-container" data-contextmenu="desktopManager.createMenu" data-container="desktop-container" data-id="-1" data-type="free">
+				<div class="desktop-container" data-contextmenu="desktopManager.createMenu" data-container=".desktop-container" data-id="-1" data-type="free">
 					<!-- icons here -->
 				</div>
 			</main>
 
 			<footer id="taskbar">
+				<!-- start menu -->
 				<div class="taskbar-container">
 
 					<span class="start-menu-button">
-						<figure class="btn-task">
+						<figure class="btn-task" data-click="startMenuManager.toggle">
 							<img class="mini-icon" src="img/startmenu/home.png">
 							<figcaption class="btn-text">Start</figcaption>
 						</figure>

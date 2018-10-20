@@ -16,12 +16,14 @@ function Core() {
 	const shared = {
 		components: {},
 		req: loadScript,
+		assoc: fileTypeAssoc,
 		getNamedDate,
 		getFormattedTime,
 		sec2Date,
 		guid,
 		getPath,
 		isEmpty,
+		objClone,
 	}
 
 	loadScript("script", "components", () => {
@@ -157,6 +159,10 @@ function Core() {
 			(d.getMinutes()+"").padStart(2, "0") + ":" +
 			(d.getSeconds()+"").padStart(2, "0")
 		);
+	}
+
+	function objClone(obj) {
+		return JSON.parse(JSON.stringify(obj));
 	}
 
 	function loadScript (type, name, callback = false, responseType = 'text') {
