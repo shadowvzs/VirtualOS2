@@ -61,6 +61,155 @@
 				</div>
 			</footer>
 		</section>
+
+		<div class="window">
+			<div class="container">
+
+				<div class="header ligth-blue-h1 no-select">
+					<h4>
+						File Explorer - <span class="name">Control Panel</span></b>
+					</h4>
+					<div class="minimize ligth-blue-h2">_</div>
+					<div class="close ligth-blue-h2">✖</div>
+				</div>
+
+				<div class="addressbar">
+
+					<span data-path="">
+						<img src="./img/app/home.png">
+					</span>
+					<span data-path="">
+						<img src="./img/app/up.png">
+					</span>
+
+					<nav>
+						<ul>
+							<li>asdas</li>
+							<li>asdas</li>
+						</ul>
+					</nav>
+				</div>
+
+				<div class="content">
+					<!-- icons -->
+				</div>
+			</div>
+		</div>
+<style>
+	.window {
+		position: absolute;
+		width: 700px;
+		height: 500px;
+		bottom: 112px;
+		right: 92px;
+		z-index: 2;
+		left: 28px;
+		top: 56px;
+	}
+
+	.window .container {
+		position: absolute;
+		top: 1px;
+		left: 1px;
+		width: 100%;
+		height: 100%;
+		border: 1px outset #000;
+		padding: 2px;
+		display: flex;
+		background-color: #ccc;
+		flex-direction: column;
+	}
+
+	.window .header {
+		position: relative;
+		line-height: 22px;
+		padding-left: 20px;
+		border: 1px solid #777;
+		text-shadow: 1px 1px 2px #000, 0px 0px 1px #000;
+		color: #fff;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		background-color: #fff;
+	}
+
+	.window .header h4 {
+		flex: 1;
+		font-size: 16px;
+	}
+
+	.window .header .close,
+	.window .header .minimize {
+		position: relative;
+		margin-right: 1px;
+		width: 22px;
+		height: 24px;
+		line-height: 22px;
+		font-size: 14px;
+		text-align: center;
+		border: 1px outset #88a;
+		cursor: pointer;
+	}
+
+	.window .addressbar {
+		position: relative;
+		height: 30px;
+		color: #000;
+		display: flex;
+		flex-direction: row;
+		overflow: hidden;
+		border: 1px solid #aaa;
+		background-color: #ccc;
+	}
+
+	.window .addressbar span {
+		padding: 2px 0;
+	}
+
+	.window .addressbar img {
+		height: 100%;
+	}
+
+	.window .addressbar nav {
+		background-color: rgba(255,255,255,0.8);
+		padding: 0 20px;
+		border: 1px inset rgba(255,255,255,0.8);
+		flex: 1;
+		margin: 2px 0;
+	}
+
+	.window .addressbar nav ul {
+		display: flex;
+		height: 100%;
+	}
+
+	.window .addressbar nav li {
+		align-self: center;
+		display: inline-block;
+		font-size: 14px;
+	}
+
+	.window .content {
+		position: relative;
+		border: 1px inset rgba(0,0,0,0.5);
+		padding: 10px;
+		background: linear-gradient(rgba(255,255,255,0.73), rgba(210,210,255,0.73));
+		color: #000;
+		font-family: arial;
+		text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+		font-size: 14px;
+		overflow-y: auto;
+		flex-grow: 1;
+		display: flex;
+		justify-content: flex-start;
+		flex-wrap: wrap;
+		flex-direction: row;
+		align-content: flex-start;
+	}
+
+
+</style>
+
 		<script src="./js/index.js"></script>
 	</body>
 </html>

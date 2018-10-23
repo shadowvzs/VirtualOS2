@@ -96,8 +96,36 @@ const componentData = {
 				startmenu: 'startMenuManager',
 			},
 			database: './vfs.json',
-			fileExtension: './vfs.json',
-		}
+		},
+		fileExplorer: {
+			id: "flxplrr",
+			name: "File Explorer",
+			description: "Responsable for browsing in directories",
+			icon: "folder",
+			launchbar: true,
+			taskbar: true,
+			maxProc: 20,
+			movable: true,
+			focusable: true,
+			relationship: {
+				window: 'windowManager',
+				datasource: 'fileSystem'
+			},
+		},
+		windowManager: {
+			id: "wndwmngr",
+			name: "Window Manager",
+			description: "Responsable for handle the windows",
+			icon: "",
+			launchbar: false,
+			taskbar: false,
+			maxProc: 1,
+			movable: false,
+			focusable: false,
+			relationship: {
+				window: 'taskManager',
+			},
+		},
 	},
 	classes: {
 		taskManager(settings, shared = false) {
@@ -725,12 +753,17 @@ const componentData = {
 				if (!id) {
 					return console.log("This file not have id!");
 				}
-				const item = searchInVfs(vfs.child, id);
+				const item = searchInVfs(vfs.child, id),
+					app = components[assoc[item.type] || "-"] || false;
+
+				console.log('open with: '+ assoc[item.type], app);
+
 				if (!item) {
 					return console.log("File corrupt or not exist anymore!");
+				} else if (!app || !app.open) {
+					return console.log("Not exist associated application!");
 				}
-
-				alert('open with: ' +assoc[item.type]);
+				app.open(e, ev);
 			}
 
 			return {
@@ -757,6 +790,41 @@ const componentData = {
 				},
 				getDatabase() {
 					return vfs;
+				}
+			}
+		},
+		fileExplorer(settings, shared = false) {
+
+			const {req, components, guid, objClone, assoc} = shared,
+				{ datasource: ds, window: win } = settings.relationship;
+
+			function registerWindow() {
+				const id = guid();
+			}
+
+			function open(e, ev) {
+
+			}
+
+			//console.log(ds);
+
+			return {
+				open(e, ev) {
+					open(e, ev);
+					//alert('open file');
+				},
+				remove() {
+
+				}
+			}
+		},
+		windowManager(settings, shared = false) {
+			return {
+				open(windowData) {
+
+				},
+				remove() {
+
 				}
 			}
 		}
