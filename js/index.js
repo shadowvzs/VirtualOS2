@@ -1,5 +1,5 @@
 const core = Object.freeze(new Core());
-
+//localStorage.clear();
 function Core() {
 	const head = document.querySelector("head"),
 		components = {},
@@ -56,7 +56,7 @@ function Core() {
 
 	function callComponent(elem = null, path = false, event = false) {
 		const c = shared.components;
-		if (!elem) { return; }
+		if (!elem) { return console.log('Element is null'); }
 		const target = path.split('.');
 		if (target.length < 2 || !c[target[0]]) {
 			return console.log("Component not exist!");
@@ -66,7 +66,7 @@ function Core() {
 
 	function globalEventandler(ev) {
 		const e = getActionNode(ev.target, ev.type);
-		if (!e) { return; }
+		if (!e) { return console.log('Element not found');; }
 		const d = e.dataset,
 			action = d[ev.type];
 		if (d.event == true || ev.type != "click") {
@@ -84,14 +84,13 @@ function Core() {
 	}
 
 	function getActionNode (e, target, max = 3) {
-
 		if (e.dataset[target]) {
 			return e;
 		}
 		let  i = 0;
 		for (; i < max; i++) {
 			e = e.parentNode;
-			if (e.dataset[target]) {
+			if (e.dataset && e.dataset[target]) {
 				return e;
 			}
 		}

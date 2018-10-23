@@ -33,7 +33,7 @@ section {
 	border-top: 1px solid rgba(150,150,150,150.8);
 	z-index: 1;
 	background-color: rgba(0,0,0,0.9);
-	perspective: 1200px;
+	perspective: 2000px;
 }
 
 .desktop-container,
@@ -153,6 +153,120 @@ time#clock:hover:after {
 	right: 0;
 	padding: 4px 10px;
 }
+
+/* CUSTOM WINDOW */
+
+/* File Explorer */
+
+.window .addressbar {
+	position: relative;
+	height: 30px;
+	color: #000;
+	display: flex;
+	flex-direction: row;
+	overflow: hidden;
+	padding-left: 1px;
+	border: 1px solid #aaa;
+	background-color: #ccc;
+}
+
+.window .addressbar span {
+	padding: 2px 0;
+	text-align: center;
+	border: 1px outset #aaa;
+	margin: 2px 0;
+	border-radius: 2px;
+	cursor: pointer;
+}
+
+.window .addressbar span:hover {
+	border: 1px outset #999;
+	background-color: rgba(0, 0, 0, 0.15);
+}
+
+.window .addressbar span:active {
+	background-color: rgba(255, 255, 255, 0.15);
+	border: 1px inset #aaa;
+}
+
+.window .addressbar img {
+	height: 100%;
+}
+
+.window .addressbar nav {
+	position: relative;
+	left: 2px;
+	background-color: rgba(255,255,200,0.5);
+	padding: 0 10px;
+	border: 1px inset rgba(255,255,255,0.8);
+	flex: 1;
+	margin: 2px 0;
+}
+
+.window .addressbar nav ul {
+	display: flex;
+	white-space: nowrap;
+	height: 100%;
+}
+
+.window .addressbar li {
+	align-self: center;
+	display: inline-block;
+	font-size: 14px;
+	cursor: pointer;
+	transition: 0.3s;
+	font-weight: bold;
+}
+
+.window .addressbar li:hover {
+	font-weight: bold;
+	text-shadow: 0 0 4px rgba(0, 0, 150, 0.4);
+}
+
+.window .addressbar nav li:before {
+	font-size: 16px;
+	content: '/';
+}
+
+/* Terminal */
+
+.terminal .overlay-terminal {
+	position: absolute;
+	top: 30px;
+	left: 2px;
+	right: 2px;
+	bottom: 2px;
+	border: 1px inset #777;
+	background-color: rgba(0,0,0,0.75);
+}
+
+.terminal .content {
+	border: 0
+}
+
+.terminal .footer {
+	display: flex;
+	flex-direction: row;
+	white-space: nowrap;
+	z-index: 1;
+	padding: 3px;
+}
+
+.terminal .footer * {
+	font-family: courier;
+	font-size: 14px;
+	color: #ff0;
+}
+
+.terminal .footer input {
+	padding: 0 3px 0 7px;
+	flex: 1;
+	display: inline;
+	background: none;
+	border: none;
+}
+
+/* WINDOW END */
 
 @media screen and (min-width: 576px) {
 

@@ -63,6 +63,8 @@ const componentData = {
 				datasource: 'fileSystem',
 				menu: 'contextMenu',
 				clipboard: 'virtualClipboard',
+				explorer: 'fileExplorer',
+				window: 'windowManager',
 			}
 		},
 		startMenuManager: {
@@ -101,6 +103,7 @@ const componentData = {
 			id: "flxplrr",
 			name: "File Explorer",
 			description: "Responsable for browsing in directories",
+			windowClass: 'file-explorer',
 			icon: "folder",
 			launchbar: true,
 			taskbar: true,
@@ -108,6 +111,7 @@ const componentData = {
 			movable: true,
 			focusable: true,
 			relationship: {
+				desktop: 'desktopManager',
 				window: 'windowManager',
 				datasource: 'fileSystem'
 			},
@@ -122,6 +126,7 @@ const componentData = {
 			maxProc: 1,
 			movable: false,
 			focusable: false,
+			contentSelector: '.content',
 			relationship: {
 				window: 'taskManager',
 			},
@@ -266,11 +271,11 @@ const componentData = {
 			}
 		},
 		desktopManager(settings, shared = false) {
-			const container = getDOM(settings.container),
+			const defaultContainer = getDOM(settings.container),
 				{ guid, sec2Date, getPath, components, isEmpty } = shared,
 				cName = settings.constructorName,
 				relationship = settings.relationship,
-				ds = relationship.datasource;
+				{datasource: ds, window: win} = relationship;
 			let icons = [];
 
 			function createTooltip(item) {
@@ -287,9 +292,9 @@ const componentData = {
 					Modified at: ${sec2Date(item.lastmodify)}`.replace(/\t/g,'');
 			}
 
-			function CreateDesktopIcon(item, targetContainer = container, newWindow = true) {
+			function CreateDesktopIcon(item, targetContainer = defaultContainer, newWindow = true) {
 				targetContainer.insertAdjacentHTML('beforeend', `<div class="de-icon no-select" data-item-id="${item.id}">
-					<a title="${createTooltip(item)}" data-click="${ds}.execute" data-contextmenu="${cName}.createMenu" data-id="${item.id}" data-container="${settings.container}" data-new="${newWindow}" data-type="icon">
+					<a title="${createTooltip(item)}" data-click="${ds}.execute" data-contextmenu="${cName}.createMenu" data-id="${item.id}" data-container="${targetContainer.dataset.id}" data-new="${newWindow}" data-type="icon">
 						<div class="DesktopIconImgBox">
 							<img src="${getPath('desktop', item.icon)}" />
 						</div>
@@ -303,6 +308,15 @@ const componentData = {
 						</div>
 					</p>
 				</div>`);
+			}
+
+			function getContainer(id) {
+				const window = components[win].getWindow(id);
+				console.log('window', window);
+				if (!window) {
+					return defaultContainer;
+				}
+				return window.body;
 			}
 
 			function loadContent(list) {
@@ -453,7 +467,7 @@ const componentData = {
 				}
 
 				if (datasource.add([newItem], id)) {
-					CreateDesktopIcon(newItem, getDOM(container), true);
+					CreateDesktopIcon(newItem, getContainer(container), true);
 				}
 			}
 
@@ -474,7 +488,7 @@ const componentData = {
 				}
 
 				if (targetType == "free") {
-					containerDOM = getDOM(container)
+					containerDOM = getContainer(container)
 					if (!containerDOM) {
 						return console.log("Container not exist!");
 					}
@@ -503,6 +517,9 @@ const componentData = {
 				},
 				createMenu(e, ev) {
 					createMenu(e, ev);
+				},
+				createIcon(item, container, newWindow) {
+					CreateDesktopIcon(item, container, newWindow);
 				},
 				paste(e, ev) {
 					paste(e);
@@ -700,6 +717,7 @@ const componentData = {
 			}
 
 			function save() {
+				localStorage.setItem('vfs', JSON.stringify(vfs))
 				return true;
 			}
 
@@ -795,33 +813,247 @@ const componentData = {
 		},
 		fileExplorer(settings, shared = false) {
 
-			const {req, components, guid, objClone, assoc} = shared,
-				{ datasource: ds, window: win } = settings.relationship;
+			const { components } = shared,
+				{ datasource: ds, window, desktop: icon } = settings.relationship;
 
-			function registerWindow() {
-				const id = guid();
+			const template = {
+				navLink(label, path) {
+					const len = label.length;
+					let i = 0, str = "";
+					if (len == 0) {
+						return str;
+					}
+					for (;i < len; i++) {
+						str += `<li ${template.createData(path[i])}">${label[i]}</li>`;
+					}
+					return str;
+				},
+				createData(cont, itemId) {
+					return `data-id="${itemId}" data-container="${cont}" data-new="false"`;
+				},
+				addressbar(item, options) {
+					const {cont, itemId, newWin} = options,
+						navLinks = template.navLink(item.parent, item.path)
+						homeLink = template.createData(cont, item.path[0] || itemId, newWin);
+						upLink = template.createData(cont, item.path[0] || itemId, newWin);
+
+					return `<div class="addressbar">
+								<span class="home" ${homeLink}>
+									<img src="./img/app/home.png">
+								</span>
+								<span class="up" ${upLink}>
+									<img src="./img/app/up.png">
+								</span>
+								<nav>
+									<ul>${navLinks}</ul>
+								</nav>
+							</div>`;
+				}
+			}
+
+			let windows = [];
+
+			function createNewWindow(item, d) {
+				const options = {
+					data: d,
+					appClass: settings.windowClass,
+					title: settings.name,
+					subTitle: "- "+item.name,
+					source: settings.constructorName,
+					theme: 'window-light-blue',
+					afterHeader: template.addressbar(
+						item, {
+							cont: d.container,
+							itemId: d.id,
+							newWin: d.new
+						}
+					),
+				};
+
+				return components[window].register(options);
+
+
+			}
+
+			function updateContent(item, d, win) {
+				const items = item.child || [],
+					desktop = components[icon];
+				for(const itm of items) {
+					desktop.createIcon(itm, win.body, false);
+				}
 			}
 
 			function open(e, ev) {
 
+				const d = e.dataset,
+					newWin = (d.new || false) === "true";
+				let win;
+				if (!d.container || !d.id) {
+					return console.log('Cannot execute, insufficient information!');
+				}
+				const item = components[ds].get(d.id);
+				if (!item) {
+					return console.log('File or folder not exist!');
+				}
+
+				if (windows.length >= settings.maxProc && d.new) {
+					return console.log('Too much opened window, cannot open more!');
+				}
+
+				if (newWin) {
+					win = createNewWindow(item, d);
+
+					if (!win) {
+						return console.log("Failed to create new file explorer window!");
+					}
+					win.up = win.dom.querySelector('.up');
+					win.home = win.dom.querySelector('.home');
+					win.nav = win.dom.querySelector('.addressbar nav ul');
+					windows.push(win);
+				} else if (d.container != "-1") {
+					win = components[window].getWindow(d.container);
+					console.log(win);
+					if (!win) {
+						return console.log("File Explorer window not exist!");
+					}
+					win.body.innerHTML = "";
+				}
+
+				updateContent(item, d, win);
 			}
 
-			//console.log(ds);
+			function close(win) {
+				const len = windows.length;
+				let i = 0;
+				for (; i < len; i++) {
+					if (windows[i].id == win.id) {
+						return windows.splice(i, 1);
+					}
+				}
+			}
 
 			return {
+				close(win) {
+					close(win);
+				},
 				open(e, ev) {
 					open(e, ev);
-					//alert('open file');
 				},
 				remove() {
 
 				}
 			}
 		},
-		windowManager(settings, shared = false) {
-			return {
-				open(windowData) {
 
+		windowManager(settings, shared = false) {
+			const { guid, components } = shared,
+				cName = settings.constructorName,
+			 	template = {
+					window(settings) {
+						const {
+							id,
+							appClass = "",
+							title = "",
+							subTitle = "",
+							theme = "",
+							afterHeader = "",
+							afterContent = "",
+							content = ""
+						} = settings;
+						return `<div class="container">
+									<div class="header no-select">
+										<h4 data-after-text="${subTitle}">
+											${title}
+										</h4>
+										<div class="minimize" data-click="${cName}.minimize" data-id="${id}">_</div>
+										<div class="close" data-click="${cName}.close" data-id="${id}">✖</div>
+									</div>
+									${afterHeader}
+									<div class="content" data-id="${id}">${content}</div>
+									${afterContent}
+								</div>`;
+					}
+			};
+
+			let windows = {};
+
+			function getNewId() {
+				let newId = guid();
+				console.log(!windows['win_'+newId]);
+				if (!windows['win_'+newId]) {
+					return newId;
+				}
+				return getNewId();
+			};
+
+			function setRandomPosition(dom = false, options = {}) {
+				const body = document.body,
+					{
+						minW = 200,
+						minH = 150,
+						maxW = 800,
+						maxH = 400
+					} = options,
+					maxX = Math.min(body.offsetWidth, maxW),
+					maxY = Math.min(body.offsetHeight, maxH),
+					width = Math.random() * (maxX - minW) + minW,
+					height = Math.random() * (maxY - minH) + minH,
+					x = Math.random() * (maxX - width),
+					y = Math.random() * (maxY - height);
+				dom.style.top = Math.floor(y) + 'px';
+				dom.style.left = Math.floor(x) + 'px';
+			}
+
+			function create(options) {
+				const id = getNewId(),
+					dom = document.createElement("div");
+				options.id = id;
+				options.status = true;
+				dom.innerHTML = template.window(options);
+				dom.id = "win_" + options.id;
+				dom.classList.add('window', options.appClass, options.theme);
+				const cont = dom.querySelector(settings.contentSelector);
+				options.dom = dom;
+				options.body = cont;
+				windows[id] = options;
+				document.body.append(dom);
+				setRandomPosition(dom);
+				return options;
+			}
+
+			function register(options) {
+				return create(options);
+			}
+
+			function minimize(e) {
+				const id = e.dataset.id,
+					win = windows[id];
+				if (!win) { return console.log('Window not found'); }
+				win.status = !win.status;
+				win.dom.classList.toggle('d-none');
+			}
+
+			function close(e) {
+				const id = e.dataset.id,
+					win = windows[id];
+				if (!win) { return console.log('Window not found'); }
+				components[win.source].close(win);
+				win.dom.remove();
+				delete windows[id];
+			}
+
+			return {
+				close(e, ev) {
+					close(e);
+				},
+				minimize(e, ev) {
+					minimize(e);
+				},
+				getWindow(id) {
+					return windows[id] || null;
+				},
+				register(options) {
+					return create(options);
 				},
 				remove() {
 
