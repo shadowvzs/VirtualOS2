@@ -828,20 +828,15 @@ const componentData = {
 					}
 					return str;
 				},
-				createData(cont, itemId) {
-					return `data-id="${itemId}" data-container="${cont}" data-new="false"`;
-				},
 				addressbar(item, options) {
 					const {cont, itemId, newWin} = options,
-						navLinks = template.navLink(item.parent, item.path)
-						homeLink = template.createData(cont, item.path[0] || itemId, newWin);
-						upLink = template.createData(cont, item.path[0] || itemId, newWin);
+						navLinks = template.navLink(item.parent, item.path);
 
 					return `<div class="addressbar">
-								<span class="home" ${homeLink}>
+								<span class="home">
 									<img src="./img/app/home.png">
 								</span>
-								<span class="up" ${upLink}>
+								<span class="up">
 									<img src="./img/app/up.png">
 								</span>
 								<nav>
@@ -883,6 +878,12 @@ const componentData = {
 				}
 			}
 
+			function updateTargetData(e, itemId, contId) {
+				e.dataset.id = itemId;
+				e.dataset.container = "win_"+contId;
+				e.dataset.new = false;
+			}
+
 			function open(e, ev) {
 
 				const d = e.dataset,
@@ -900,6 +901,8 @@ const componentData = {
 					return console.log('Too much opened window, cannot open more!');
 				}
 
+console.log(d);
+
 				if (newWin) {
 					win = createNewWindow(item, d);
 
@@ -909,16 +912,25 @@ const componentData = {
 					win.up = win.dom.querySelector('.up');
 					win.home = win.dom.querySelector('.home');
 					win.nav = win.dom.querySelector('.addressbar nav ul');
+					win.h4 = win.dom.querySelector('.header h4');
+					win.body.dataset.type = "free";
+					win.body.dataset.container = win.id;
+					win.body.dataset.id = item.id;
+					//win.body.dataset.id = win.id;
+					win.body.dataset.contextmenu = "desktopManager.createMenu";
 					windows.push(win);
 				} else if (d.container != "-1") {
 					win = components[window].getWindow(d.container);
-					console.log(win);
+					console.log("test", d.container, win);
 					if (!win) {
 						return console.log("File Explorer window not exist!");
 					}
 					win.body.innerHTML = "";
 				}
-
+				win.h4.dataset["afterText"] = "- " + item.name;
+				win.body.dataset.id = item.id;
+				updateTargetData(win.up, item.id, win.id)
+				updateTargetData(win.home, item.id, win.id)
 				updateContent(item, d, win);
 			}
 
@@ -1050,6 +1062,7 @@ const componentData = {
 					minimize(e);
 				},
 				getWindow(id) {
+					console.log('all win', windows, id);
 					return windows[id] || null;
 				},
 				register(options) {
