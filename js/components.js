@@ -1,15 +1,48 @@
 const componentData = {
 	settings: {
-		taskManager: {
-			id: "tskmngr",
-			name: "System Taskbar",
-			description: "Responsable for managing the taskbar",
+		launchBar: {
+			id: "lnchbr",
+			name: "Launchbar",
+			description: "Responsable for launcher icons",
 			icon: "",
+			container: ".task-app-list",
+			toggle: ".app-list-toggle",
 			launchbar: false,
 			taskbar: false,
 			maxProc: 1,
 			movable: false,
 			focusable: false,
+		},
+		taskManager: {
+			id: "tskmngr",
+			name: "System Taskbar",
+			description: "Responsable for managing the taskbar",
+			icon: "sys_task",
+			launchbar: true,
+			taskbar: false,
+			group: ".task-win-group",
+			container: ".task-win-container",
+			maxProc: 1,
+			movable: false,
+			focusable: false,
+			relationship: {
+				datasource: 'fileSystem',
+				window: 'windowManager',
+			}
+		},
+		displayManager: {
+			id: "dsplymngr",
+			name: "Display Settings",
+			description: "Responsable for managing background",
+			icon: "sys_display",
+			launchbar: true,
+			taskbar: false,
+			maxProc: 1,
+			movable: false,
+			focusable: false,
+			relationship: {
+				//datasource: 'fileSystem',
+			}
 		},
 		clockManager: {
 			id: "clkmngr",
@@ -52,9 +85,9 @@ const componentData = {
 			id: "dsktpmngr",
 			name: "Desktop Manager",
 			description: "Responsable for create, arrange icons, send data to context menu",
-			icon: "",
-			launchbar: true,
-			taskbar: true,
+			icon: "sys_display",
+			launchbar: false,
+			taskbar: false,
 			maxProc: 1,
 			movable: false,
 			focusable: false,
@@ -105,7 +138,7 @@ const componentData = {
 			description: "Responsable for browsing in directories",
 			windowClass: 'file-explorer',
 			icon: "folder",
-			launchbar: true,
+			launchbar: false,
 			taskbar: true,
 			maxProc: 20,
 			movable: true,
@@ -128,19 +161,26 @@ const componentData = {
 			focusable: false,
 			contentSelector: '.content',
 			relationship: {
-				window: 'taskManager',
+				task: 'taskManager',
 			},
 		},
+		audioManager: {
+			id: "dmngr",
+			name: "Sound Settings",
+			description: "Responsable for volume controll",
+			icon: "soundon",
+			launchbar: true,
+			taskbar: false,
+			maxProc: 1,
+			movable: false,
+			focusable: false,
+			relationship: {
+				launch: 'launchBar',
+			},
+		},
+
 	},
 	classes: {
-		taskManager(settings, shared = false) {
-
-			return {
-				remove() {
-
-				}
-			}
-		},
 		clockManager(settings, shared = false) {
 			const placeholder = document.body.querySelector(settings.placeholder) || null;
 			let timerId;
@@ -175,6 +215,7 @@ const componentData = {
 				}
 			}
 		},
+
 		contextMenu (settings, shared = false) {
 			const width = settings.width || 200,
 				id = 'contextmenu_'+Date.now();
@@ -247,6 +288,7 @@ const componentData = {
 				}
 			}
 		},
+
 		virtualClipboard(settings, shared = false) {
 			const container = document.querySelector(settings.container),
 				{ components, isEmpty } = shared;
@@ -270,6 +312,7 @@ const componentData = {
 				}
 			}
 		},
+
 		desktopManager(settings, shared = false) {
 			const defaultContainer = getDOM(settings.container),
 				{ guid, sec2Date, getPath, components, isEmpty } = shared,
@@ -312,7 +355,6 @@ const componentData = {
 
 			function getContainer(id) {
 				const window = components[win].getWindow(id);
-				console.log('window', window);
 				if (!window) {
 					return defaultContainer;
 				}
@@ -364,12 +406,12 @@ const componentData = {
 			}
 
 			function createMenu(e, ev) {
-				const { id, container = false, type = "icon" } = e.dataset,
+				const { id, container = false, type = "icon", itemId = false } = e.dataset,
 					datasource = components[ds],
 					clipboard = components[relationship.clipboard || "null"] || null;
 					menu = components[relationship.menu || "null"] || null;
-
-				if (!id || !container) {
+				const targetId = itemId || id;
+				if (!targetId || !container) {
 					return console.log("Not exist id or container data on this element");
 				}
 
@@ -377,13 +419,13 @@ const componentData = {
 				let list;
 				if (type == "free") {
 					list = [
-						["New Folder", cName, "createNew", [id, container, 'dir']],
-						["New File", cName, "createNew", [id, container, 'html']],
-						["Paste", cName, "paste", [id, container, type]],
+						["New Folder", cName, "createNew", [targetId, container, 'dir']],
+						["New File", cName, "createNew", [targetId, container, 'html']],
+						["Paste", cName, "paste", [targetId, container, type]],
 					//	["Arrange Icon", relationship.clipboard, "addItems", ['fs', id, 'true']],
-						["Terminal", cName, "remove", [id]],
-						["Settings", cName, "toggleRename", [id]],
-						["Properties", cName, "details", [id]],
+						["Terminal", cName, "remove", [targetId]],
+						["Settings", cName, "toggleRename", [targetId]],
+						["Properties", cName, "details", [targetId]],
 					];
 
 					if (isEmpty(clipboard.getItems())) {
@@ -391,15 +433,15 @@ const componentData = {
 					}
 
 				} else if (type == "icon") {
-					const item = datasource.search(vfs.child, id);
+					const item = datasource.search(vfs.child, targetId);
 					list = [
-						["Run", ds, "execute", [id]],
-						["Copy", relationship.clipboard, "addItems", ['fs', id, 'false']],
-						["Cut", relationship.clipboard, "addItems", ['fs', id, 'true']],
-						["Paste", cName, "paste", [id, type]],
-						["Rename", cName, "toggleRename", [id]],
-						["Delete", cName, "remove", [id]],
-						["Properties", cName, "details", [id]],
+						["Run", ds, "execute", [targetId]],
+						["Copy", relationship.clipboard, "addItems", ['fs', targetId, 'false']],
+						["Cut", relationship.clipboard, "addItems", ['fs', targetId, 'true']],
+						["Paste", cName, "paste", [targetId, type]],
+						["Rename", cName, "toggleRename", [targetId]],
+						["Delete", cName, "remove", [targetId]],
+						["Properties", cName, "details", [targetId]],
 					];
 
 
@@ -419,15 +461,23 @@ const componentData = {
 				}
 
 				if (list) {
-					menu.create(ev, list, id );
+					menu.create(ev, list, targetId );
+				}
+			}
+
+			function deleteIcon(id) {
+				const icons = document.body.querySelectorAll(`.de-icon[data-item-id="${id}"]`);
+				for (const icon of icons) {
+					icon.remove();
 				}
 			}
 
 			function remove(e) {
 				const id = e.dataset.id,
 					datasource = components[ds];
+
 				if (datasource.remove(id)) {
-					e.parentNode.remove();
+					deleteIcon(id);
 				}
 			}
 
@@ -486,7 +536,6 @@ const componentData = {
 				if (!clipboard.getItems()) {
 					return console.log("Clipboard is empty");
 				}
-
 				if (targetType == "free") {
 					containerDOM = getContainer(container)
 					if (!containerDOM) {
@@ -502,8 +551,7 @@ const componentData = {
 						if (item && targetType == "free") {
 							CreateDesktopIcon(item, containerDOM, newWindow);
 							if (remove) {
-								const oldItem = containerDOM.querySelector(`[data-item-id="${itemId}"]`);
-								if (oldItem) { oldItem.remove(); }
+								deleteIcon(itemId);
 							}
 						}
 					}
@@ -520,6 +568,9 @@ const componentData = {
 				},
 				createIcon(item, container, newWindow) {
 					CreateDesktopIcon(item, container, newWindow);
+				},
+				deleteIcon(id) {
+					deleteIcon(id);
 				},
 				paste(e, ev) {
 					paste(e);
@@ -576,6 +627,9 @@ const componentData = {
 						</li>`;
 				},
 				subList(item) {
+					if (!item.child) {
+						return "";
+					}
 					return `<ul class="d-none" data-item-id="${item.id}">
 						${item.child.map(item => template.subItem(item)).join("")}
 					</ul>`;
@@ -704,7 +758,7 @@ const componentData = {
 			}
 
 			function add(items, to) {
-				let target = to == -1 ? vfs : searchInVfs(vfs.child, id);
+				let target = to == -1 ? vfs : searchInVfs(vfs.child, to);
 				if (!target) {
 					return false;
 				}
@@ -817,21 +871,8 @@ const componentData = {
 				{ datasource: ds, window, desktop: icon } = settings.relationship;
 
 			const template = {
-				navLink(label, path) {
-					const len = label.length;
-					let i = 0, str = "";
-					if (len == 0) {
-						return str;
-					}
-					for (;i < len; i++) {
-						str += `<li ${template.createData(path[i])}">${label[i]}</li>`;
-					}
-					return str;
-				},
 				addressbar(item, options) {
-					const {cont, itemId, newWin} = options,
-						navLinks = template.navLink(item.parent, item.path);
-
+					const {cont, itemId, newWin} = options;
 					return `<div class="addressbar">
 								<span class="home">
 									<img src="./img/app/home.png">
@@ -840,13 +881,36 @@ const componentData = {
 									<img src="./img/app/up.png">
 								</span>
 								<nav>
-									<ul>${navLinks}</ul>
+									<ul></ul>
 								</nav>
 							</div>`;
 				}
 			}
 
 			let windows = [];
+
+			function addNavLink(win, item) {
+				const label = item.parent,
+					path = item.path,
+					len = label.length;
+				let i = 0, li;
+				win.nav.innerHTML = "";
+				win.nav.append(document.createElement("li"));
+				if (len > 0) {
+					label.reverse();
+					path.reverse();
+
+					for (;i < len; i++) {
+						li = document.createElement("li");
+						updateTargetData(li, path[i], win.id);
+						li.textContent = label[i];
+						win.nav.append(li);
+					}
+				}
+				li = document.createElement("li");
+				li.textContent = item.name;
+				win.nav.append(li);
+			}
 
 			function createNewWindow(item, d) {
 				const options = {
@@ -856,6 +920,7 @@ const componentData = {
 					subTitle: "- "+item.name,
 					source: settings.constructorName,
 					theme: 'window-light-blue',
+					icon: item.icon,
 					afterHeader: template.addressbar(
 						item, {
 							cont: d.container,
@@ -864,10 +929,7 @@ const componentData = {
 						}
 					),
 				};
-
 				return components[window].register(options);
-
-
 			}
 
 			function updateContent(item, d, win) {
@@ -878,10 +940,11 @@ const componentData = {
 				}
 			}
 
-			function updateTargetData(e, itemId, contId) {
+			function updateTargetData(e, itemId, winId) {
 				e.dataset.id = itemId;
-				e.dataset.container = "win_"+contId;
+				e.dataset.container = winId;
 				e.dataset.new = false;
+				e.dataset.click = `${ds}.execute`;
 			}
 
 			function open(e, ev) {
@@ -901,8 +964,6 @@ const componentData = {
 					return console.log('Too much opened window, cannot open more!');
 				}
 
-console.log(d);
-
 				if (newWin) {
 					win = createNewWindow(item, d);
 
@@ -915,22 +976,20 @@ console.log(d);
 					win.h4 = win.dom.querySelector('.header h4');
 					win.body.dataset.type = "free";
 					win.body.dataset.container = win.id;
-					win.body.dataset.id = item.id;
-					//win.body.dataset.id = win.id;
 					win.body.dataset.contextmenu = "desktopManager.createMenu";
 					windows.push(win);
 				} else if (d.container != "-1") {
 					win = components[window].getWindow(d.container);
-					console.log("test", d.container, win);
 					if (!win) {
 						return console.log("File Explorer window not exist!");
 					}
 					win.body.innerHTML = "";
 				}
 				win.h4.dataset["afterText"] = "- " + item.name;
-				win.body.dataset.id = item.id;
-				updateTargetData(win.up, item.id, win.id)
-				updateTargetData(win.home, item.id, win.id)
+				addNavLink(win, item);
+				win.body.dataset.itemId = item.id;
+				updateTargetData(win.home, item.path[0] || item.id, win.id)
+				updateTargetData(win.up, item.path.slice(-1)[0] || item.id, win.id)
 				updateContent(item, d, win);
 			}
 
@@ -959,6 +1018,7 @@ console.log(d);
 
 		windowManager(settings, shared = false) {
 			const { guid, components } = shared,
+				taskMName = settings.relationship.task,
 				cName = settings.constructorName,
 			 	template = {
 					window(settings) {
@@ -985,13 +1045,14 @@ console.log(d);
 									${afterContent}
 								</div>`;
 					}
-			};
+				},
+				focusedZ = 3,
+				normalZ = 2;
 
-			let windows = {};
+			let windows = {}, focusedId;
 
 			function getNewId() {
 				let newId = guid();
-				console.log(!windows['win_'+newId]);
 				if (!windows['win_'+newId]) {
 					return newId;
 				}
@@ -1006,23 +1067,28 @@ console.log(d);
 						maxW = 800,
 						maxH = 400
 					} = options,
-					maxX = Math.min(body.offsetWidth, maxW),
-					maxY = Math.min(body.offsetHeight, maxH),
+					limitX = body.offsetWidth,
+					limitY = body.offsetHeight,
+					maxX = Math.min(limitX, maxW),
+					maxY = Math.min(limitY, maxH),
 					width = Math.random() * (maxX - minW) + minW,
 					height = Math.random() * (maxY - minH) + minH,
-					x = Math.random() * (maxX - width),
-					y = Math.random() * (maxY - height);
+					x = Math.random() * (limitX - width),
+					y = Math.random() * (limitY - height);
 				dom.style.top = Math.floor(y) + 'px';
 				dom.style.left = Math.floor(x) + 'px';
 			}
 
 			function create(options) {
 				const id = getNewId(),
-					dom = document.createElement("div");
+					dom = document.createElement("div")
+					task = components[taskMName];
 				options.id = id;
 				options.status = true;
 				dom.innerHTML = template.window(options);
 				dom.id = "win_" + options.id;
+				dom.dataset.id = options.id;
+				dom.dataset.click = cName+".focus";
 				dom.classList.add('window', options.appClass, options.theme);
 				const cont = dom.querySelector(settings.contentSelector);
 				options.dom = dom;
@@ -1030,6 +1096,7 @@ console.log(d);
 				windows[id] = options;
 				document.body.append(dom);
 				setRandomPosition(dom);
+				task.add(options);
 				return options;
 			}
 
@@ -1047,16 +1114,37 @@ console.log(d);
 
 			function close(e) {
 				const id = e.dataset.id,
-					win = windows[id];
+					win = windows[id],
+					task = components[taskMName];
 				if (!win) { return console.log('Window not found'); }
 				components[win.source].close(win);
 				win.dom.remove();
+				task.close(windows[id]);
 				delete windows[id];
+			}
+
+			function focus(id = false) {
+				if (!id) {
+					return;
+				}
+
+				if (focusedId && windows[focusedId]) {
+					windows[focusedId].dom.style.zIndex = normalZ;
+				}
+
+				if (windows[id]) {
+					windows[id].dom.style.zIndex = focusedZ;
+					focusedId = id;
+				}
+				// focus in taskmanager
 			}
 
 			return {
 				close(e, ev) {
 					close(e);
+				},
+				focus(e, ev) {
+					focus(e.dataset.id);
 				},
 				minimize(e, ev) {
 					minimize(e);
@@ -1072,6 +1160,170 @@ console.log(d);
 
 				}
 			}
-		}
+		},
+
+		launchBar(settings, shared = false) {
+			const { guid, components } = shared,
+				cName = settings.constructorName,
+				container = document.body.querySelector(settings.container),
+				toggleButton = document.body.querySelector(settings.toggle);
+				template = {
+					icon(appData) {
+						return `<figure class="btn-task" data-click="${appData.constructorName}.launch">
+								<img class="mini-icon" src="img/startmenu/${appData.icon}.png">
+							</figure>`;
+					}
+				};
+			if (toggleButton) {
+				toggleButton.dataset.click = `${settings.constructorName}.toggle`;
+			}
+			function add(appData) {
+				if (!container) {
+					return console.log("Missing launchbar container");
+				}
+				container.insertAdjacentHTML('beforeend', template.icon(appData));
+			}
+
+			function toggle(e) {
+				container.classList.toggle('d-iblock');
+			}
+
+			return {
+				add(appData) {
+					add(appData);
+				},
+				toggle(e, v) {
+					toggle(e);
+				},
+				unpin() {
+					// remove it
+				},
+				remove() {
+
+				}
+			}
+		},
+
+		taskManager(settings, shared = false) {
+			const { guid, components } = shared,
+				{ launch, window } = settings.relationship,
+				container = document.body.querySelector(settings.container),
+				group = container.querySelector(settings.group),
+				cName = settings.constructorName,
+				template = {
+					taskGroupBtn(options) {
+						const { id, icon, title, subTitle = "", source: group } = options;
+						return `<figure class="btn-task btn-group" data-click="${cName}.toggle" data-id="${id}" data-group=${group} title="${title}">
+									<img class="mini-icon" src="img/startmenu/${icon}.png">
+									<figcaption class="btn-text">${title}</figcaption>
+									<div data-sub-group="${group}"></div>
+								</figure>`;
+					},
+					taskBtn(options) {
+						const { id, icon, title, subTitle = "", source: group } = options;
+						return `<figure class="btn-task" data-click="${cName}.toggle" data-id="${id}" data-group=${group} title="${title} ${subTitle}">
+									<img class="mini-icon" src="img/startmenu/${icon}.png">
+									<figcaption class="btn-text">${subTitle.substr(2)}</figcaption>
+									<div data-sub-group="${group}"></div>
+								</figure>`;
+					},
+				};
+
+			let taskGroup = {};
+
+
+			function start(e) {
+				alert('1');
+			}
+
+			function getSubContainer(groupId) {
+				return group.querySelector(`[data-sub-group="${groupId}"]`);
+			}
+
+			function create(options, type) {
+				console.log(container, group);
+				const { id, source: groupId} = options;
+				if (type == "main") {
+					taskGroup[groupId] = { child: {} };
+					group.insertAdjacentHTML('beforeend', template.taskGroupBtn(options));
+					taskGroup[groupId]['dom'] = group.lastChild;
+					console.log(taskGroup);
+				}
+
+				const subContainer = getSubContainer(groupId);
+				subContainer.insertAdjacentHTML('beforeend', template.taskBtn(options));
+				options.btn = subContainer.lastChild;
+				taskGroup[groupId]['child'][id] = options;
+
+			}
+
+			function add(options) {
+				console.log('------------');
+				const { id, source: groupId} = options;
+				create(options, !taskGroup[groupId] ? "main" : false);
+				console.log(options);
+			}
+
+			function close(options) {
+				const { id, source: groupId} = options;
+				taskGroup[groupId]['child'][id].btn.remove();
+				delete taskGroup[groupId]['child'][id];
+				if (Object.keys(taskGroup[groupId].child).length == 0) {
+					taskGroup[groupId].dom.remove();
+					delete taskGroup[groupId];
+				}
+			}
+
+			return {
+				close(options) {
+					close(options);
+				},
+				add(options) {
+					add(options);
+				},
+				launch(e, ev) {
+					start(e);
+				},
+				remove() {
+
+				}
+			}
+		},
+
+		audioManager(settings, shared = false) {
+			const { guid, components } = shared,
+				{ launch } = settings.relationship;
+
+			function start(e) {
+				alert('1');
+			}
+
+			return {
+				launch(e, ev) {
+					start(e);
+				},
+				remove() {
+
+				}
+			}
+		},
+
+		displayManager(settings, shared = false) {
+			const { guid, components } = shared,
+				{ launch = false } = settings.relationship;
+
+			function start(e) {
+				alert('1');
+			}
+
+			return {
+				launch(e, ev) {
+					start(e);
+				},
+				remove() {
+
+				}
+			}
+		},
 	},
 }

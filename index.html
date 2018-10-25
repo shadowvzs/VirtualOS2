@@ -12,7 +12,7 @@
 			<main id="desktop">
 				<div class="background-image"></div>
 				<div class="background-gradient"></div>
-				<div class="desktop-container" data-contextmenu="desktopManager.createMenu" data-container=".desktop-container" data-id="-1" data-type="free">
+				<div class="desktop-container" data-contextmenu="desktopManager.createMenu" data-container="-1" data-id="-1" data-type="free">
 					<!-- icons here -->
 				</div>
 			</main>
@@ -30,32 +30,30 @@
 					<div class="v-divider"></div>
 
 					<div class="task-app-group">
-						<div class="btn-task d-iblock d-sm-none" data-event="true" data-action="toggle" data-target="taskAppList" data-classname="d-block">
+						<div class="btn-task d-iblock d-sm-none app-list-toggle">
 							<div class="btn-text">
 								&raquo;
 							</div>
 						</div>
 
-						<div id="taskAppList">
-							<figure class="btn-task">
-								<img class="mini-icon bradius-circle" src="img/startmenu/mini_me.jpg">
-							</figure>
-							<figure class="btn-task">
-								<img class="mini-icon" src="img/startmenu/settings.png">
-							</figure>
+						<div class="task-app-list">
+							<!-- launchbar icons -->
 						</div>
 					</div>
 
 					<div class="v-divider"></div>
 
-					<div class="task-win-group d-iblock" style"position: relative;">
-						<div class="btn-task d-iblock d-md-none" for="appListToggle">
+					<div class="task-win-container d-iblock" style"position: relative;">
+						<div class="btn-task d-iblock d-md-none">
 							<div class="btn-text">
 								&raquo;
 							</div>
 						</div>
-					</div>
 
+						<div class="task-win-group">
+
+						</div>
+					</div>
 					<div class="v-divider"></div>
 					<time id="clock" class="btn-task btn-text"> 00:00:00 </time>
 				</div>
@@ -72,7 +70,7 @@
 					<div class="close">✖</div>
 				</div>
 				<div class="overlay-terminal"></div>
-				<div class="content"> adsd asd <!-- text will be here --></div>
+				<div class="content"><!-- text will be here --></div>
 				<div class="footer">
 					<span class="bash-prefix">root@root-desktop:~$</span>
 					<input type="text" value="">

@@ -45,6 +45,10 @@ function Core() {
 				4. delete the original script, so our object will be isolated here
 			*/
 			shared.components[key] = new (new Function(...param, 'return component(options, shared)'))(component, options, shared);
+			if (options.launchbar) {
+				shared.components['launchBar'].add(options);
+			}
+			//components[launch].add(settings);
 		}
 		removeScript("script", "components");
 	});

@@ -107,7 +107,7 @@ section {
 }
 
 .btn-task .btn-text,
-	.btn-task.btn-text {
+.btn-task.btn-text {
 	position: relative;
 	font-size: 14px;
 	line-height: 30px;
@@ -123,11 +123,25 @@ section {
 	flex-direction: column-reverse;
 }
 
-.task-win-group {
+.task-win-container {
 	flex: 1;
 }
 
-#taskAppList {
+.task-win-container figure.btn-group {
+	position: relative;
+}
+
+.task-win-container div[data-sub-group] {
+	position: absolute;
+	margin-left: -7px;
+	bottom: 32px;
+	background-color: rgba(0,0,0,0.9);
+	display: flex;
+	flex-direction: column;	
+}
+
+
+.task-app-list {
 	position: absolute;
 	bottom: 30px;
 	padding: 5px 0;
@@ -223,7 +237,7 @@ time#clock:hover:after {
 	text-shadow: 0 0 4px rgba(0, 0, 150, 0.4);
 }
 
-.window .addressbar nav li:before {
+.window .addressbar nav li:after {
 	font-size: 16px;
 	content: '/';
 }
@@ -270,16 +284,23 @@ time#clock:hover:after {
 
 @media screen and (min-width: 576px) {
 
-	.task-app-group {
+	.task-app-container {
 		flex-direction: row;
 	}
 
-	#taskAppList {
+	.task-app-list {
 		position: static;
 		display: flex;
 		flex-direction: row;
 		padding: 0;
 		background-color: transparent;
 		border-color: transparent;
+	}
+
+	.task-win-group .btn-task .btn-text {
+		width: 140px;
+		overflow: hidden;
+		white-space: pre;
+		text-overflow: ellipsis;
 	}
 }
