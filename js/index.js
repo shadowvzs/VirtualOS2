@@ -15,6 +15,7 @@ function Core() {
 
 	const shared = {
 		components: {},
+		closable: [],
 		req: loadScript,
 		assoc: fileTypeAssoc,
 		getNamedDate,

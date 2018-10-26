@@ -20,6 +20,7 @@ const componentData = {
 			icon: "sys_task",
 			launchbar: true,
 			taskbar: false,
+			focusClass: "active",
 			group: ".task-win-group",
 			container: ".task-win-container",
 			maxProc: 1,
@@ -178,7 +179,20 @@ const componentData = {
 				launch: 'launchBar',
 			},
 		},
-
+		terminal: {
+			id: "trmnl",
+			name: "Terminal",
+			description: "Ubuntu terminal simulator",
+			icon: "terminal",
+			launchbar: true,
+			taskbar: false,
+			maxProc: 20,
+			movable: false,
+			focusable: false,
+			relationship: {
+				launch: 'launchBar',
+			},
+		},
 	},
 	classes: {
 		clockManager(settings, shared = false) {
@@ -547,6 +561,7 @@ const componentData = {
 				for (let [sourceType, itemId, remove] of items) {
 					if (sourceType == "fs") {
 						remove = remove == "true";
+						console.log(targetId, itemId, remove);
 						const item = datasource.copyItem(targetId, itemId, remove);
 						if (item && targetType == "free") {
 							CreateDesktopIcon(item, containerDOM, newWindow);
@@ -800,15 +815,18 @@ const componentData = {
 				}
 
 				if (item.child && item.child.length > 0) {
-					return prepareItems(item.child, remove);
+					return prepareItems(item.child, true);
 				}
 				return;
 			}
 
 			function copyItem(targetId, sourceId, removeItem = false) {
-				const s = searchInVfs(vfs.child, sourceId);
-				if (!s) { return null; }
-				const itemCopy = objClone(s);
+				const sourceItem = searchInVfs(vfs.child, sourceId);
+				if (!sourceItem) { return null; }
+				const itemCopy = objClone(sourceItem);
+				if (targetId == -1) {
+					itemCopy['ondesktop'] = true;
+				}
 				prepareItem(itemCopy, removeItem);
 				if (!add([itemCopy], targetId)) {
 					return false;
@@ -1059,6 +1077,68 @@ const componentData = {
 				return getNewId();
 			};
 
+
+			function dragdrop(e1, e2 = null) {
+				e1 = typeof e1 === "string" ? document.body.querySelector(e1) : e1;
+				e2 = typeof e2 === "string" ?  document.body.querySelector(e2 || e1) : e2;
+				e2.addEventListener('mousedown', dragHandler);
+				let body = document.body,
+					html = document.documentElement,
+					eWidth = e1.offsetWidth,
+					eHeight = e1.offsetHeight,
+					mWidth = Math.max(body.offsetWidth, html.offsetWidth)-eWidth,
+					mHeight =  Math.max(body.offsetHeight, html.offsetHeight)-eHeight,
+					cX, cY, x, y, pos = e1.style.position,
+					shiftX, shiftY,
+					moving = false;
+
+				e1.style.position = 'fixed';
+
+				function move(x, y) {
+					e1.style.left = x+'px';
+					e1.style.top = y+'px';
+				}
+
+				function mousemove (e) {
+					x = e.clientX-shiftX;
+					y = e.clientY-shiftY;
+					cX = x >  mWidth ? mWidth : x < 0 ? 0 : x;
+					cY = y >  mHeight ? mHeight : y < 0 ? 0 : y;
+					move(cX, cY);
+				}
+
+				function mouseup (e) {
+					body.removeEventListener('mousemove', mousemove);
+					body.removeEventListener('mouseup', mouseup);
+					moving = false;
+					if (e1.dataset.id && e1.classList.contains('window')) {
+						focus(e1.dataset.id);
+					}
+					//e.preventDefault();
+				}
+
+				function dragHandler(e){
+					if (moving) return;
+					if (e1.dataset.id && e1.classList.contains('window')) {
+						focus(e1.dataset.id);
+					}
+					moving = true;
+					body.addEventListener('mousemove', mousemove);
+					// use window => mouse could be released when pointer isn't over the body
+					window.addEventListener('mouseup', mouseup);
+					shiftX = e.clientX - e1.offsetLeft;
+					shiftY = e.clientY - e1.offsetTop;
+				}
+
+				return {
+					remove() {
+						body.removeEventListener('mousemove', mousemove);
+						window.removeEventListener('mouseup', mouseup);
+						e2.removeEventListener('mousedown', dragHandler);
+					}
+				}
+			}
+
 			function setRandomPosition(dom = false, options = {}) {
 				const body = document.body,
 					{
@@ -1068,7 +1148,7 @@ const componentData = {
 						maxH = 400
 					} = options,
 					limitX = body.offsetWidth,
-					limitY = body.offsetHeight,
+					limitY = body.offsetHeight - 33,
 					maxX = Math.min(limitX, maxW),
 					maxY = Math.min(limitY, maxH),
 					width = Math.random() * (maxX - minW) + minW,
@@ -1077,6 +1157,8 @@ const componentData = {
 					y = Math.random() * (limitY - height);
 				dom.style.top = Math.floor(y) + 'px';
 				dom.style.left = Math.floor(x) + 'px';
+				dom.style.width = Math.floor(width) + 'px';
+				dom.style.height = Math.floor(height) + 'px';
 			}
 
 			function create(options) {
@@ -1092,11 +1174,14 @@ const componentData = {
 				dom.classList.add('window', options.appClass, options.theme);
 				const cont = dom.querySelector(settings.contentSelector);
 				options.dom = dom;
+				options.header = dom.querySelector(".header");
 				options.body = cont;
+				dragdrop(options.dom, options.header);
 				windows[id] = options;
 				document.body.append(dom);
 				setRandomPosition(dom);
 				task.add(options);
+				focus(id);
 				return options;
 			}
 
@@ -1104,12 +1189,12 @@ const componentData = {
 				return create(options);
 			}
 
-			function minimize(e) {
-				const id = e.dataset.id,
-					win = windows[id];
+			function minimize(id) {
+				const win = windows[id];
 				if (!win) { return console.log('Window not found'); }
 				win.status = !win.status;
 				win.dom.classList.toggle('d-none');
+				unfocus(id);
 			}
 
 			function close(e) {
@@ -1123,18 +1208,27 @@ const componentData = {
 				delete windows[id];
 			}
 
+			function unfocus(id) {
+				if (windows[id]) {
+					windows[id].dom.style.zIndex = normalZ;
+					components[taskMName].focus(windows[id], false);
+				}
+			}
+
 			function focus(id = false) {
 				if (!id) {
 					return;
 				}
 
-				if (focusedId && windows[focusedId]) {
-					windows[focusedId].dom.style.zIndex = normalZ;
-				}
+				unfocus(focusedId);
 
-				if (windows[id]) {
+				if (windows[id] && focusedId != id) {
+					if (!windows[id].status) {
+						minimize(id);
+					}
 					windows[id].dom.style.zIndex = focusedZ;
 					focusedId = id;
+					components[taskMName].focus(windows[id], true);
 				}
 				// focus in taskmanager
 			}
@@ -1147,7 +1241,7 @@ const componentData = {
 					focus(e.dataset.id);
 				},
 				minimize(e, ev) {
-					minimize(e);
+					minimize(e.dataset.id);
 				},
 				getWindow(id) {
 					console.log('all win', windows, id);
@@ -1166,7 +1260,7 @@ const componentData = {
 			const { guid, components } = shared,
 				cName = settings.constructorName,
 				container = document.body.querySelector(settings.container),
-				toggleButton = document.body.querySelector(settings.toggle);
+				toggleButton = document.body.querySelector(settings.toggle),
 				template = {
 					icon(appData) {
 						return `<figure class="btn-task" data-click="${appData.constructorName}.launch">
@@ -1174,9 +1268,11 @@ const componentData = {
 							</figure>`;
 					}
 				};
+
 			if (toggleButton) {
 				toggleButton.dataset.click = `${settings.constructorName}.toggle`;
 			}
+
 			function add(appData) {
 				if (!container) {
 					return console.log("Missing launchbar container");
@@ -1213,27 +1309,27 @@ const componentData = {
 				template = {
 					taskGroupBtn(options) {
 						const { id, icon, title, subTitle = "", source: group } = options;
-						return `<figure class="btn-task btn-group" data-click="${cName}.toggle" data-id="${id}" data-group=${group} title="${title}">
+						return `<figure class="btn-task btn-group" data-click="${cName}.toggle" data-id="${id}" data-group=${group} data-contextmenu="${cName}.createMenu" title="${title}">
 									<img class="mini-icon" src="img/startmenu/${icon}.png">
-									<figcaption class="btn-text">${title}</figcaption>
-									<div data-sub-group="${group}"></div>
+									<figcaption class="btn-text d-none d-md-iblock">${title}</figcaption>
+									<div class="d-none" data-sub-group="${group}"></div>
 								</figure>`;
 					},
 					taskBtn(options) {
 						const { id, icon, title, subTitle = "", source: group } = options;
-						return `<figure class="btn-task" data-click="${cName}.toggle" data-id="${id}" data-group=${group} title="${title} ${subTitle}">
-									<img class="mini-icon" src="img/startmenu/${icon}.png">
+						return `<figure class="btn-task" data-click="${window}.focus" data-id="${id}" data-group=${group} title="${title} ${subTitle}">
+									<img class="mini-icon d-none d-md-iblock" src="img/startmenu/${icon}.png">
 									<figcaption class="btn-text">${subTitle.substr(2)}</figcaption>
 									<div data-sub-group="${group}"></div>
 								</figure>`;
 					},
-				};
+				},
+				focusClass = settings.focusClass;
 
 			let taskGroup = {};
 
-
 			function start(e) {
-				alert('1');
+				alert('clicked to taskManager');
 			}
 
 			function getSubContainer(groupId) {
@@ -1241,13 +1337,12 @@ const componentData = {
 			}
 
 			function create(options, type) {
-				console.log(container, group);
 				const { id, source: groupId} = options;
 				if (type == "main") {
 					taskGroup[groupId] = { child: {} };
 					group.insertAdjacentHTML('beforeend', template.taskGroupBtn(options));
 					taskGroup[groupId]['dom'] = group.lastChild;
-					console.log(taskGroup);
+					taskGroup[groupId]['subGroup'] = group.lastChild.querySelector(`[data-sub-group="${groupId}"]`);
 				}
 
 				const subContainer = getSubContainer(groupId);
@@ -1258,10 +1353,8 @@ const componentData = {
 			}
 
 			function add(options) {
-				console.log('------------');
 				const { id, source: groupId} = options;
 				create(options, !taskGroup[groupId] ? "main" : false);
-				console.log(options);
 			}
 
 			function close(options) {
@@ -1274,9 +1367,51 @@ const componentData = {
 				}
 			}
 
+			function focus(win, select = false) {
+				const { id, source: groupId} = win;
+				if (taskGroup[groupId] && taskGroup[groupId]['child'][id]) {
+					const taskBtn = taskGroup[groupId]['child'][id];
+					taskBtn.btn.classList[select ? 'add' : 'remove'](focusClass);
+				}
+			}
+
+			function toggle(e) {
+				const {id, group} = e.dataset;
+				taskGroup[group].subGroup.classList.toggle('d-none');
+			}
+
+			function createMenu(e, ev) {
+				const { id, group = false, type = "icon" } = e.dataset,
+
+					list = [
+						["New Folder", cName, "createNew", [targetId, container, 'dir']],
+						["New File", cName, "createNew", [targetId, container, 'html']],
+						["Paste", cName, "paste", [targetId, container, type]],
+					//	["Arrange Icon", relationship.clipboard, "addItems", ['fs', id, 'true']],
+						["Terminal", cName, "remove", [targetId]],
+						["Settings", cName, "toggleRename", [targetId]],
+						["Properties", cName, "details", [targetId]],
+					];
+
+					if (isEmpty(clipboard.getItems())) {
+						list.splice(2, 1);
+					}
+
+
+				if (list) {
+					menu.create(ev, list, targetId );
+				}
+			}
+
 			return {
+				focus(win, select = false) {
+					focus(win, select);
+				},
 				close(options) {
 					close(options);
+				},
+				createMenu(e, ev) {
+					createMenu(e, ev);
 				},
 				add(options) {
 					add(options);
@@ -1286,7 +1421,10 @@ const componentData = {
 				},
 				remove() {
 
-				}
+				},
+				toggle(e, ev) {
+					toggle(e);
+				},
 			}
 		},
 
@@ -1313,7 +1451,24 @@ const componentData = {
 				{ launch = false } = settings.relationship;
 
 			function start(e) {
-				alert('1');
+				alert('clicked to audio settings');
+			}
+
+			return {
+				launch(e, ev) {
+					start(e);
+				},
+				remove() {
+
+				}
+			}
+		},
+		terminal(settings, shared = false) {
+			const { guid, components } = shared,
+				{ launch = false } = settings.relationship;
+
+			function start(e) {
+				alert('clicked to terminal');
 			}
 
 			return {
