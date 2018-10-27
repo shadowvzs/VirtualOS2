@@ -7,11 +7,7 @@ const componentData = {
 			icon: "",
 			container: ".task-app-list",
 			toggle: ".app-list-toggle",
-			launchbar: false,
-			taskbar: false,
 			maxProc: 1,
-			movable: false,
-			focusable: false,
 		},
 		taskManager: {
 			id: "tskmngr",
@@ -19,13 +15,10 @@ const componentData = {
 			description: "Responsable for managing the taskbar",
 			icon: "sys_task",
 			launchbar: true,
-			taskbar: false,
 			focusClass: "active",
 			group: ".task-win-group",
 			container: ".task-win-container",
 			maxProc: 1,
-			movable: false,
-			focusable: false,
 			relationship: {
 				datasource: 'fileSystem',
 				window: 'windowManager',
@@ -37,12 +30,11 @@ const componentData = {
 			description: "Responsable for managing background",
 			icon: "sys_display",
 			launchbar: true,
-			taskbar: false,
+			windowClass: 'desktop-settings',
 			maxProc: 1,
-			movable: false,
-			focusable: false,
 			relationship: {
-				//datasource: 'fileSystem',
+				window: 'windowManager',
+				window: 'windowManager',
 			}
 		},
 		clockManager: {
@@ -50,11 +42,8 @@ const componentData = {
 			name: "System Clock",
 			description: "Responsable for keep time realated parts like right side clock",
 			icon: "",
-			launchbar: false,
 			taskbar: true,
 			maxProc: 1,
-			movable: false,
-			focusable: false,
 			showUI: true,
 			placeholder: "time#clock",
 		},
@@ -63,35 +52,23 @@ const componentData = {
 			name: "Right Click Menu",
 			description: "Responsable for create right click menu from array",
 			icon: "",
-			launchbar: false,
-			taskbar: false,
 			width: "auto",
 			className: 'contextMenu',
 			maxProc: 1,
-			movable: false,
-			focusable: false,
 		},
 		virtualClipboard: {
 			id: "vrtlclpbrd",
 			name: "Clipboard",
 			description: "Responsable for register item/items in virtual clipboard",
 			icon: "",
-			launchbar: false,
-			taskbar: false,
 			maxProc: 1,
-			movable: false,
-			focusable: false,
 		},
 		desktopManager: {
 			id: "dsktpmngr",
 			name: "Desktop Manager",
 			description: "Responsable for create, arrange icons, send data to context menu",
 			icon: "sys_display",
-			launchbar: false,
-			taskbar: false,
 			maxProc: 1,
-			movable: false,
-			focusable: false,
 			container: '.desktop-container',
 			relationship: {
 				datasource: 'fileSystem',
@@ -108,11 +85,7 @@ const componentData = {
 			icon: "",
 			label: "Start",
 			placeholder: ".start-menu-button",
-			launchbar: false,
-			taskbar: false,
 			maxProc: 1,
-			movable: false,
-			focusable: false,
 			relationship: {
 				datasource: 'fileSystem'
 			}
@@ -122,11 +95,7 @@ const componentData = {
 			name: "File System",
 			description: "Responsable for file & folder crud (json data manipulation)",
 			icon: "",
-			launchbar: false,
-			taskbar: false,
 			maxProc: 1,
-			movable: false,
-			focusable: false,
 			relationship: {
 				desktop: 'desktopManager',
 				startmenu: 'startMenuManager',
@@ -139,11 +108,9 @@ const componentData = {
 			description: "Responsable for browsing in directories",
 			windowClass: 'file-explorer',
 			icon: "folder",
-			launchbar: false,
 			taskbar: true,
+			randomPosition: true,
 			maxProc: 20,
-			movable: true,
-			focusable: true,
 			relationship: {
 				desktop: 'desktopManager',
 				window: 'windowManager',
@@ -155,11 +122,7 @@ const componentData = {
 			name: "Window Manager",
 			description: "Responsable for handle the windows",
 			icon: "",
-			launchbar: false,
-			taskbar: false,
 			maxProc: 1,
-			movable: false,
-			focusable: false,
 			contentSelector: '.content',
 			relationship: {
 				task: 'taskManager',
@@ -171,10 +134,7 @@ const componentData = {
 			description: "Responsable for volume controll",
 			icon: "soundon",
 			launchbar: true,
-			taskbar: false,
 			maxProc: 1,
-			movable: false,
-			focusable: false,
 			relationship: {
 				launch: 'launchBar',
 			},
@@ -185,10 +145,7 @@ const componentData = {
 			description: "Ubuntu terminal simulator",
 			icon: "terminal",
 			launchbar: true,
-			taskbar: false,
 			maxProc: 20,
-			movable: false,
-			focusable: false,
 			relationship: {
 				launch: 'launchBar',
 			},
@@ -939,6 +896,7 @@ const componentData = {
 					source: settings.constructorName,
 					theme: 'window-light-blue',
 					icon: item.icon,
+					randomPosition: settings.randomPosition,
 					afterHeader: template.addressbar(
 						item, {
 							cont: d.container,
@@ -1109,8 +1067,11 @@ const componentData = {
 
 				function mouseup (e) {
 					body.removeEventListener('mousemove', mousemove);
+					window.removeEventListener('mouseup', mouseup);
 					body.removeEventListener('mouseup', mouseup);
+					e2.addEventListener('mousedown', dragHandler);
 					moving = false;
+					e1.dataset.move = "false";
 					if (e1.dataset.id && e1.classList.contains('window')) {
 						focus(e1.dataset.id);
 					}
@@ -1126,6 +1087,7 @@ const componentData = {
 					body.addEventListener('mousemove', mousemove);
 					// use window => mouse could be released when pointer isn't over the body
 					window.addEventListener('mouseup', mouseup);
+					e1.dataset.move = "true";
 					shiftX = e.clientX - e1.offsetLeft;
 					shiftY = e.clientY - e1.offsetTop;
 				}
@@ -1179,7 +1141,9 @@ const componentData = {
 				dragdrop(options.dom, options.header);
 				windows[id] = options;
 				document.body.append(dom);
-				setRandomPosition(dom);
+				if (options.randomPosition) {
+					setRandomPosition(dom);
+				}
 				task.add(options);
 				focus(id);
 				return options;
@@ -1193,8 +1157,9 @@ const componentData = {
 				const win = windows[id];
 				if (!win) { return console.log('Window not found'); }
 				win.status = !win.status;
-				win.dom.classList.toggle('d-none');
+				win.dom.classList.toggle('minify');
 				unfocus(id);
+				focusedId = null;
 			}
 
 			function close(e) {
@@ -1211,8 +1176,9 @@ const componentData = {
 			function unfocus(id) {
 				if (windows[id]) {
 					windows[id].dom.style.zIndex = normalZ;
-					components[taskMName].focus(windows[id], false);
+					components[taskMName].unfocus(windows[id]);
 				}
+				focusedId = null;
 			}
 
 			function focus(id = false) {
@@ -1228,9 +1194,8 @@ const componentData = {
 					}
 					windows[id].dom.style.zIndex = focusedZ;
 					focusedId = id;
-					components[taskMName].focus(windows[id], true);
+					components[taskMName].focus(windows[id]);
 				}
-				// focus in taskmanager
 			}
 
 			return {
@@ -1238,13 +1203,14 @@ const componentData = {
 					close(e);
 				},
 				focus(e, ev) {
-					focus(e.dataset.id);
+					const id = typeof e != "object" ? e : e.dataset.id;
+					focus(id, status);
 				},
 				minimize(e, ev) {
+					ev.preventDefault();
 					minimize(e.dataset.id);
 				},
 				getWindow(id) {
-					console.log('all win', windows, id);
 					return windows[id] || null;
 				},
 				register(options) {
@@ -1316,17 +1282,19 @@ const componentData = {
 								</figure>`;
 					},
 					taskBtn(options) {
-						const { id, icon, title, subTitle = "", source: group } = options;
+						const { id, icon, title, subTitle = "", source: group } = options
+							headerTitle = subTitle.length > 1 ? subTitle.substr(2) : title;
 						return `<figure class="btn-task" data-click="${window}.focus" data-id="${id}" data-group=${group} title="${title} ${subTitle}">
 									<img class="mini-icon d-none d-md-iblock" src="img/startmenu/${icon}.png">
-									<figcaption class="btn-text">${subTitle.substr(2)}</figcaption>
+									<figcaption class="btn-text">${headerTitle}</figcaption>
 									<div data-sub-group="${group}"></div>
 								</figure>`;
 					},
 				},
 				focusClass = settings.focusClass;
 
-			let taskGroup = {};
+			let taskGroup = {}
+				selectedGroup = null;
 
 			function start(e) {
 				alert('clicked to taskManager');
@@ -1378,6 +1346,17 @@ const componentData = {
 			function toggle(e) {
 				const {id, group} = e.dataset;
 				taskGroup[group].subGroup.classList.toggle('d-none');
+				if (!selectedGroup) {
+					selectedGroup = id;
+					return;
+				}
+
+				if (selectedGroup == id) {
+					// unfocus
+					// selectedGroup = null;
+				} else {
+					// simple focus
+				}
 			}
 
 			function createMenu(e, ev) {
@@ -1404,8 +1383,11 @@ const componentData = {
 			}
 
 			return {
-				focus(win, select = false) {
-					focus(win, select);
+				focus(win) {
+					focus(win, true);
+				},
+				unfocus(win, select = false) {
+					focus(win, false);
 				},
 				close(options) {
 					close(options);
@@ -1448,13 +1430,144 @@ const componentData = {
 
 		displayManager(settings, shared = false) {
 			const { guid, components } = shared,
-				{ launch = false } = settings.relationship;
+				{ window } = settings.relationship,
+				template = {
+					window() {
+						const s = screen,
+							b = document.body,
+							d = document.querySelector('.desktop-container');
+						return `<div class="desktop-details">
+									<div class="desktop-previews">
+										<div class="mini-preview" data-type="image"></div>
+										<div class="mini-preview" data-type="color"></div>
+									</div>
+									<div class="desktop-info">
+										<p>Screen Size:</p><span>${s.width} x ${s.height}</span>
+										<p>Window Size:</p><span>${b.offsetWidth} x ${b.offsetHeight}</span>
+										<p>Desktop Size:</p><span>${d.offsetWidth} x ${d.offsetHeight}</span>
+									</div>
+									<div>
+										<button>Apply</button>
+									</div>
+								</div>
+
+								<div class="grid-column-2 desktop-options">
+									<p>Color:</p>
+									<p>
+										<input name="startColor" value="#0000FF" type="color">
+										<input name="endColor" value="#FFFFFF" type="color">
+									</p>
+									<p>Alpha:</p>
+									<p>
+										<input name="colOpacity" min="0" max="100" value="100" type="number">
+									</p>
+									<p>Direction:</p>
+									<p>
+										<input name="colDegree" value="135" min="-90" max="180" type="number"> deg
+									</p>
+									<p>Image:</p>
+									<p>
+										<select name="wallpaper">${template.options(options.background)}</select>
+									</p>
+									<p>Position:</p>
+									<p>
+										<select name="bgPosition">${template.options(options.position)}</select>
+									</p>
+									<p>Size:</p>
+									<p>
+										<input name="bgWidth" value="100" min="0" type="number">%,
+										<input name="bgHeight" value="100" min="0" type="number">%
+									</p>
+									<p>Repeat:</p>
+									<p>
+										<select name="bgRepeat">${template.options(options.repeat)}</select>
+									</p>
+									<p>Opacity:</p>
+									<p>
+										<input name="bgOpacity" type="number" min="0" max="100" value="100"> %
+									</p>
+								</div>`;
+					},
+					options(list) {
+						return list.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('');
+					}
+				},
+				options = {
+					position: [
+						["center center","Center Center"],
+						["center top","Center Top"],
+						["center bottom","Center Bottom"],
+						["left top","Left Top"],
+						["left center","Left Center"],
+						["left bottom","Left Bottom"],
+						["right top","Right Top"],
+						["right center","Right Center"],
+						["right bottom","Right Bottom"],
+					],
+					repeat: [
+						["no-repeat","Not repeat"],
+						["repeat","Repeat"],
+						["repeat-x","Horizontal"],
+						["repeat-y","Vertical"],
+					],
+					background: [
+						["","No image"],
+						["bg1.jpg","Default"],
+						["bg2.jpg","Dot Land"],
+						["bg3.jpg","Flying Points"],
+						["bg4.jpg","The Colors"],
+						["bg5.jpg","Universe"],
+						["bg6.jpg","Sunrise in Space"],
+						["bg7.jpg","Red Blue Lines"],
+						["bg8.jpg","Sun Rise and Flower Field"],
+						["bg9.jpg","The Earth"],
+						["bg10.jpg","Earth and Moon from Sky"],
+						["bg11.jpg","Mountain Spring"],
+						["cloud1.png","Rain Cloud"],
+						["cloud2.png","Cloud"],
+						["cat.gif","Cat ani"],
+						["man.gif","Man right ani"],
+						["smile.gif","Smile ani"],
+						["matrix1.gif","Matrix ani"],
+						["matrix2.gif","Matrix ani"]
+					]
+				};
+
+			let windowId = false;
+
+			function createNewWindow() {
+				const options = {
+					data: false,
+					appClass: settings.windowClass,
+					title: settings.name,
+					source: settings.constructorName,
+					theme: 'window-light-blue',
+					icon: settings.icon,
+				};
+				return components[window].register(options);
+			}
 
 			function start(e) {
-				alert('clicked to audio settings');
+				if (windowId) {
+					return components[window].focus(windowId);
+				}
+
+				let win = createNewWindow();
+				if (!win) {
+					return console.log("Failed to create new window!");
+				}
+				win.body.innerHTML = template.window();
+				windowId = win.id;
+			}
+
+			function close(e) {
+				windowId = 0;
 			}
 
 			return {
+				close(e, ev) {
+					close(e);
+				},
 				launch(e, ev) {
 					start(e);
 				},

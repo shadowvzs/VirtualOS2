@@ -294,6 +294,72 @@ time#clock:hover:after {
 	border: none;
 }
 
+/* Display settings */
+
+.window * {
+	font-size: 14px;
+}
+.desktop-previews {
+	position: relative;
+	min-height: 150px;
+	min-width: 200px;
+	text-align: center;
+	margin: 0 20px 20px 20px;
+}
+
+.desktop-previews .mini-preview {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	border: 1px solid rgba(0, 0, 0, 0.5);
+	background: rgba(0, 0, 0, 0);
+	background-image: none;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-position: center center;
+	b1ackground: linear-gradient(135deg, rgb(0, 0, 255), rgb(255, 255, 255)) repeat scroll 0% 0%;
+	opacity: 1
+}
+
+.desktop-settings input[type="number"] {
+	width: 75px;
+}
+
+.desktop-settings input[type="color"] {
+	width: 100px;
+}
+
+.desktop-settings select {
+	width: 200px;
+}
+
+.desktop-info {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	text-align: center;
+}
+
+.grid-column-2 {
+	display: grid;
+	grid-template-columns: repeat(2, auto);
+	grid-auto-rows: auto;
+	align-items: center;
+}
+
+.desktop-options p {
+	font-family: sans;
+	font-size: 12px;
+	min-width: 70px
+}
+
+.desktop-options input,
+.desktop-options select {
+	font-family: sans;
+	font-size: 12px;
+}
+
 /* WINDOW END */
 
 @media screen and (min-width: 576px) {

@@ -6,6 +6,10 @@
 		font-family: cursive;
 	}
 
+	.window:not(data-move="true") {
+		transition: 0.3s ease;		
+	}
+
 	.window .container {
 		position: relative;
 		width: 100%;
@@ -200,7 +204,9 @@
 	word-wrap: break-word;
 }
 
-
+.minify {
+	transform: scale(0, 0);
+}
 
 .no-select {
 	-webkit-user-select: none;
