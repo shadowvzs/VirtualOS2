@@ -1104,8 +1104,8 @@ const componentData = {
 			function setRandomPosition(dom = false, options = {}) {
 				const body = document.body,
 					{
-						minW = 200,
-						minH = 150,
+						minW = 400,
+						minH = 200,
 						maxW = 800,
 						maxH = 400
 					} = options,

@@ -19,7 +19,6 @@ section {
 
 #desktop {
 	position: relative;
-	background: linear-gradient(to right, #55a, #a8a);
 	flex: 1;
 	display: block;
 }
@@ -35,14 +34,20 @@ section {
 	perspective: 2000px;
 }
 
-.desktop-container,
-.desktop-background-gradient,
-.desktop-background-image {
+#desktop .desktop-container,
+#desktop .background-gradient,
+#desktop .background-image {
 	position: absolute;
 	top: 0;
 	left: 0;
 	width: 100%;
 	height: 100%;
+}
+
+#desktop .background-image {
+	height: 100%;
+	background-image: url(../img/background/bg9.jpg);
+	background-position: center;
 }
 
 .desktop-container {
@@ -315,7 +320,7 @@ time#clock:hover:after {
 	width: 100%;
 	border: 1px solid rgba(0, 0, 0, 0.5);
 	background: rgba(0, 0, 0, 0);
-	background-image: none;
+	background-image: url(../img/background/bg9.jpg);
 	background-size: 100% 100%;
 	background-repeat: no-repeat;
 	background-position: center center;
