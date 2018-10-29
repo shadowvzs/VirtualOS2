@@ -30,10 +30,9 @@ const componentData = {
 			description: "Responsable for managing background",
 			icon: "sys_display",
 			launchbar: true,
-			windowClass: 'desktop-settings',
+			windowClass: ["desktop-settings", "window-light-blue"],
 			maxProc: 1,
 			relationship: {
-				window: 'windowManager',
 				window: 'windowManager',
 			}
 		},
@@ -65,14 +64,16 @@ const componentData = {
 		},
 		desktopManager: {
 			id: "dsktpmngr",
-			name: "Desktop Manager",
+			name: "Properties",
 			description: "Responsable for create, arrange icons, send data to context menu",
 			icon: "sys_display",
-			maxProc: 1,
+			maxProc: 20,
 			container: '.desktop-container',
+			windowClass: ["file-properties", "window-light-blue"],
 			relationship: {
 				datasource: 'fileSystem',
 				menu: 'contextMenu',
+				display: 'displayManager',
 				clipboard: 'virtualClipboard',
 				explorer: 'fileExplorer',
 				window: 'windowManager',
@@ -106,7 +107,11 @@ const componentData = {
 			id: "flxplrr",
 			name: "File Explorer",
 			description: "Responsable for browsing in directories",
-			windowClass: 'file-explorer',
+			windowClass: ["file-explorer", "window-light-blue"],
+			windowSize: {
+				minW: 200,
+				minH: 200,
+			},
 			icon: "folder",
 			taskbar: true,
 			randomPosition: true,
@@ -144,11 +149,47 @@ const componentData = {
 			name: "Terminal",
 			description: "Ubuntu terminal simulator",
 			icon: "terminal",
+			windowClass: ["terminal", "window-dark"],
+			windowSize: {
+				minW: 200,
+				minH: 200,
+			},
+			randomPosition: true,
 			launchbar: true,
 			maxProc: 20,
 			relationship: {
-				launch: 'launchBar',
+				window: 'windowManager',
+				datasource: 'fileSystem',
+			}
+		},
+		htmlViewer: {
+			id: "htmlvwr",
+			name: "HTML Viewer",
+			description: "Responsable for opening the html files",
+			icon: "doc",
+			windowClass: ["html-viewer", "window-light-blue"],
+			windowSize: {
+				full: true
 			},
+			maxProc: 20,
+			relationship: {
+				window: 'windowManager',
+				datasource: 'fileSystem',
+			}
+		},
+		controlPanel: {
+			id: "ctrlpnl",
+			name: "Control Panel",
+			description: "Responsable for control panel and for base app",
+			icon: "settings",
+			windowClass: ["system", "window-light-blue"],
+			randomPosition: true,
+			maxProc: 1,
+			relationship: {
+				window: 'windowManager',
+				datasource: 'fileSystem',
+				desktop: 'desktopManager',
+			}
 		},
 	},
 	classes: {
@@ -286,29 +327,44 @@ const componentData = {
 
 		desktopManager(settings, shared = false) {
 			const defaultContainer = getDOM(settings.container),
-				{ guid, sec2Date, getPath, components, isEmpty } = shared,
+				{ guid, sec2Date, getPath, components, isEmpty, assoc } = shared,
 				cName = settings.constructorName,
 				relationship = settings.relationship,
-				{datasource: ds, window: win} = relationship;
-			let icons = [];
+				{datasource: ds, window: win, display} = relationship,
+				template = {
+					tooltip(item) {
+						return `ID: ${item.id}&#013Description: ${item.description}&#013;`;
+					},
+					propertiesWrapper(p) {
+						const prop = p.map( e => template.propertiesLine(e) ).join('');
+						return `<div class="file-info">${prop}</div>`
+					},
+					propertiesLine(e) {
+						const padding = "".padStart(5, "&nbsp;");
+						return `<p><b>${e[0]}:</b> ${padding}</p><p>${e[1]}</p>`
+					},
+					properties(item) {
+						const info = [
+							["ID", item.id],
+							["Type", item.type],
+							["Open with", assoc[item.type] || "Unknown"],
+							["Status", item.readonly ? "readonly" : "writeable"]
+						];
+						if (item.child && item.child.length) {
+							info.push(["Content", `${item.child.length} file(s) or folder(s)`]);
+						}
+						info.push(["Created at", sec2Date(item.createtime)]);
+						info.push(["Modified at", sec2Date(item.lastmodify)]);
 
-			function createTooltip(item) {
-				const child = item.child && item.child.length,
-					content = child ?
-					`Content: &nbsp; ${child} file(s) or folder(s)&#013;`
-					: "";
-				return `ID: ${item.id}
-					Description: ${item.description}&#013;
-					Type: ${item.type}&#013;
-					Status: ${item.readonly ? "readonly" : "writeable"}&#013;
-					${content}
-					Created at: ${sec2Date(item.createtime)}&#013;
-					Modified at: ${sec2Date(item.lastmodify)}`.replace(/\t/g,'');
-			}
+						return template.propertiesWrapper(info);
+					}
+				};
+			let icons = [],
+				windows = [];
 
 			function CreateDesktopIcon(item, targetContainer = defaultContainer, newWindow = true) {
 				targetContainer.insertAdjacentHTML('beforeend', `<div class="de-icon no-select" data-item-id="${item.id}">
-					<a title="${createTooltip(item)}" data-click="${ds}.execute" data-contextmenu="${cName}.createMenu" data-id="${item.id}" data-container="${targetContainer.dataset.id}" data-new="${newWindow}" data-type="icon">
+					<a title="${template.tooltip(item)}" data-click="${ds}.execute" data-contextmenu="${cName}.createMenu" data-id="${item.id}" data-container="${targetContainer.dataset.id}" data-new="${newWindow}" data-type="icon">
 						<div class="DesktopIconImgBox">
 							<img src="${getPath('desktop', item.icon)}" />
 						</div>
@@ -316,12 +372,67 @@ const componentData = {
 					<p title="${item.name}">
 						<div class="de-text-box icon-text" data-id="${item.id}">
 							<input class="d-none" type="text" maxlength="24" value="${item.name}" />
-							<a class="d-none" data-click="${cName}.rename">&#10004;</a>
-							<a class="d-none" data-click="${cName}.toggleRename">&#10008;</a>
 							<span data-click="${cName}.toggleRename">${item.name}</span>
 						</div>
 					</p>
 				</div>`);
+				const icon = targetContainer.lastChild;
+				icon.querySelector("input").onblur = inputBlur;
+				icon.querySelector("input").onkeyup = nameConfirm;
+			}
+
+			function inputBlur(e) {
+				e.preventDefault();
+				toggleRename(e.target.parentNode);
+			}
+
+			function nameConfirm(e) {
+				e.preventDefault();
+				if (e.keyCode === 13) {
+					rename(e.target);
+				} else if (e.keyCode === 27) {
+					toggleRename(e.target.parentNode);
+				}
+			}
+
+			function createNewWindow() {
+				const options = {
+					data: false,
+					appClass: settings.windowClass,
+					title: settings.name,
+					source: settings.constructorName,
+					windowSize: settings.windowSize,
+					randomPosition: settings.randomPosition,
+					icon: settings.icon,
+				};
+				return components[win].register(options);
+			}
+
+			function start(e, ev) {
+				const datasource = components[ds],
+					id = e.parentNode.dataset.id || null,
+					item = datasource.get(id),
+					t = e.parentNode;
+				if (!id || !item) {
+					return console.log("file not exist or missing id");
+				}
+				if (windows.length >= settings.maxProc) {
+					return console.log('Too much opened window, cannot open more!');
+				}
+
+				let win = createNewWindow();
+				if (!win) {
+					console.log("Failed to create new window!");
+					return false;
+				}
+				win.body.innerHTML = template.properties(item);
+
+				win.h4 = win.dom.querySelector('.header h4');
+				win.h4.dataset["afterText"] = "- " + item.name;
+				win.dom.style.top = ev.clientY - t.offsetHeight;
+				win.dom.style.left = parseInt(t.parentNode.style.left, 10);
+				windows.push(win);
+				return win;
 			}
 
 			function getContainer(id) {
@@ -334,6 +445,7 @@ const componentData = {
 
 			function loadContent(list) {
 				for (const item of list) {
+					if (!item.ondesktop) { continue; }
 					CreateDesktopIcon(item);
 				}
 			}
@@ -357,8 +469,7 @@ const componentData = {
 				if (!datasource || !id) {
 					return console.log("file system not exist or missing id");
 				}
-				const vfs = datasource.getDatabase(),
-					item = datasource.search(vfs.child, id),
+				const item = datasource.get(id),
 					input = e.parentNode.querySelector("input");
 				if (!item || !input) {
 					return console.log("file or folder not exist!");
@@ -366,6 +477,7 @@ const componentData = {
 
 
 				item.name = input.value;
+				item.lastmodify = Math.floor(Date.now() / 1000);
 				if (datasource.save()) {
 					const parent = e.parentNode;
 						span = parent.querySelector('span');
@@ -386,7 +498,6 @@ const componentData = {
 					return console.log("Not exist id or container data on this element");
 				}
 
-				const vfs = datasource.getDatabase();
 				let list;
 				if (type == "free") {
 					list = [
@@ -395,8 +506,8 @@ const componentData = {
 						["Paste", cName, "paste", [targetId, container, type]],
 					//	["Arrange Icon", relationship.clipboard, "addItems", ['fs', id, 'true']],
 						["Terminal", cName, "remove", [targetId]],
-						["Settings", cName, "toggleRename", [targetId]],
-						["Properties", cName, "details", [targetId]],
+				//		["Settings", display, "launch", [targetId]],
+						["Properties", display, "launch", [targetId]],
 					];
 
 					if (isEmpty(clipboard.getItems())) {
@@ -404,7 +515,7 @@ const componentData = {
 					}
 
 				} else if (type == "icon") {
-					const item = datasource.search(vfs.child, targetId);
+					const item = datasource.get(targetId);
 					list = [
 						["Run", ds, "execute", [targetId]],
 						["Copy", relationship.clipboard, "addItems", ['fs', targetId, 'false']],
@@ -412,7 +523,7 @@ const componentData = {
 						["Paste", cName, "paste", [targetId, type]],
 						["Rename", cName, "toggleRename", [targetId]],
 						["Delete", cName, "remove", [targetId]],
-						["Properties", cName, "details", [targetId]],
+						["Properties", cName, "properties", [targetId]],
 					];
 
 
@@ -530,8 +641,20 @@ const componentData = {
 				}
 				clipboard.clear()
 			}
+			function close(win) {
+				const len = windows.length;
+				let i = 0;
+				for (; i < len; i++) {
+					if (windows[i].id == win.id) {
+						return windows.splice(i, 1);
+					}
+				}
+			}
 
 			return {
+				close(win) {
+					close(win);
+				},
 				createNew(e, ev) {
 					createNew(e);
 				},
@@ -547,8 +670,8 @@ const componentData = {
 				paste(e, ev) {
 					paste(e);
 				},
-				rename(e) {
-					rename(e);
+				properties(e, ev) {
+					start(e, ev);
 				},
 				toggleRename(e) {
 					toggleRename(getParent(e));
@@ -802,7 +925,6 @@ const componentData = {
 				}
 				const item = searchInVfs(vfs.child, id),
 					app = components[assoc[item.type] || "-"] || false;
-
 				console.log('open with: '+ assoc[item.type], app);
 
 				if (!item) {
@@ -840,6 +962,7 @@ const componentData = {
 				}
 			}
 		},
+
 		fileExplorer(settings, shared = false) {
 
 			const { components } = shared,
@@ -891,10 +1014,10 @@ const componentData = {
 				const options = {
 					data: d,
 					appClass: settings.windowClass,
+					windowSize: settings.windowSize,
 					title: settings.name,
 					subTitle: "- "+item.name,
 					source: settings.constructorName,
-					theme: 'window-light-blue',
 					icon: item.icon,
 					randomPosition: settings.randomPosition,
 					afterHeader: template.addressbar(
@@ -1000,10 +1123,9 @@ const componentData = {
 					window(settings) {
 						const {
 							id,
-							appClass = "",
+							appClass = [""],
 							title = "",
 							subTitle = "",
-							theme = "",
 							afterHeader = "",
 							afterContent = "",
 							content = ""
@@ -1047,8 +1169,7 @@ const componentData = {
 					mWidth = Math.max(body.offsetWidth, html.offsetWidth)-eWidth,
 					mHeight =  Math.max(body.offsetHeight, html.offsetHeight)-eHeight,
 					cX, cY, x, y, pos = e1.style.position,
-					shiftX, shiftY,
-					moving = false;
+					shiftX, shiftY;
 
 				e1.style.position = 'fixed';
 
@@ -1070,7 +1191,6 @@ const componentData = {
 					window.removeEventListener('mouseup', mouseup);
 					body.removeEventListener('mouseup', mouseup);
 					e2.addEventListener('mousedown', dragHandler);
-					moving = false;
 					e1.dataset.move = "false";
 					if (e1.dataset.id && e1.classList.contains('window')) {
 						focus(e1.dataset.id);
@@ -1079,11 +1199,14 @@ const componentData = {
 				}
 
 				function dragHandler(e){
-					if (moving) return;
-					if (e1.dataset.id && e1.classList.contains('window')) {
-						focus(e1.dataset.id);
+					const { width, height } = e1.style,
+						{ move = false, id = false } = e1.dataset;
+					if (move || width == "100%" || height == "100%")  {
+						return;
 					}
-					moving = true;
+					if (id && e1.classList.contains('window')) {
+						focus(id);
+					}
 					body.addEventListener('mousemove', mousemove);
 					// use window => mouse could be released when pointer isn't over the body
 					window.addEventListener('mouseup', mouseup);
@@ -1092,35 +1215,35 @@ const componentData = {
 					shiftY = e.clientY - e1.offsetTop;
 				}
 
-				return {
-					remove() {
-						body.removeEventListener('mousemove', mousemove);
-						window.removeEventListener('mouseup', mouseup);
-						e2.removeEventListener('mousedown', dragHandler);
-					}
-				}
 			}
 
-			function setRandomPosition(dom = false, options = {}) {
-				const body = document.body,
-					{
-						minW = 400,
-						minH = 200,
-						maxW = 800,
-						maxH = 400
-					} = options,
-					limitX = body.offsetWidth,
-					limitY = body.offsetHeight - 33,
-					maxX = Math.min(limitX, maxW),
-					maxY = Math.min(limitY, maxH),
-					width = Math.random() * (maxX - minW) + minW,
-					height = Math.random() * (maxY - minH) + minH,
-					x = Math.random() * (limitX - width),
-					y = Math.random() * (limitY - height);
-				dom.style.top = Math.floor(y) + 'px';
-				dom.style.left = Math.floor(x) + 'px';
-				dom.style.width = Math.floor(width) + 'px';
-				dom.style.height = Math.floor(height) + 'px';
+			function customizeWindow(dom, options) {
+				const  winSize = options.windowSize || {};
+				let width, height;
+				if (winSize.full) {
+					width = "100%";
+					height = "100%";
+					dom.style.top = '0px';
+					dom.style.left = '0px';
+				} else {
+					const body = document.body,
+						{
+							minW = 400,
+							minH = 200,
+							maxW = 800,
+							maxH = 400
+						} = options.windowSize || {},
+						limitX = body.offsetWidth,
+						limitY = body.offsetHeight - 33,
+						maxX = Math.min(limitX, maxW),
+						maxY = Math.min(limitY, maxH);
+					width = Math.floor(Math.random() * (maxX - minW) + minW) + 'px';
+					height = Math.floor(Math.random() * (maxY - minH) + minH) + 'px';
+					dom.style.top = Math.random() * (limitX - width) + 'px';
+					dom.style.left = Math.random() * (limitY - height) + 'px';
+				}
+				dom.style.width = width;
+				dom.style.height = height;
 			}
 
 			function create(options) {
@@ -1133,7 +1256,7 @@ const componentData = {
 				dom.id = "win_" + options.id;
 				dom.dataset.id = options.id;
 				dom.dataset.click = cName+".focus";
-				dom.classList.add('window', options.appClass, options.theme);
+				dom.classList.add('window', ...options.appClass);
 				const cont = dom.querySelector(settings.contentSelector);
 				options.dom = dom;
 				options.header = dom.querySelector(".header");
@@ -1141,9 +1264,7 @@ const componentData = {
 				dragdrop(options.dom, options.header);
 				windows[id] = options;
 				document.body.append(dom);
-				if (options.randomPosition) {
-					setRandomPosition(dom);
-				}
+				customizeWindow(dom, options);
 				task.add(options);
 				focus(id);
 				return options;
@@ -1199,8 +1320,8 @@ const componentData = {
 			}
 
 			return {
-				close(e, ev) {
-					close(e);
+				close(options) {
+					close(options);
 				},
 				focus(e, ev) {
 					const id = typeof e != "object" ? e : e.dataset.id;
@@ -1267,7 +1388,7 @@ const componentData = {
 		},
 
 		taskManager(settings, shared = false) {
-			const { guid, components } = shared,
+			const { guid, components, blurable } = shared,
 				{ launch, window } = settings.relationship,
 				container = document.body.querySelector(settings.container),
 				group = container.querySelector(settings.group),
@@ -1311,6 +1432,7 @@ const componentData = {
 					group.insertAdjacentHTML('beforeend', template.taskGroupBtn(options));
 					taskGroup[groupId]['dom'] = group.lastChild;
 					taskGroup[groupId]['subGroup'] = group.lastChild.querySelector(`[data-sub-group="${groupId}"]`);
+					blurable(group.lastChild, test);
 				}
 
 				const subContainer = getSubContainer(groupId);
@@ -1319,6 +1441,12 @@ const componentData = {
 				taskGroup[groupId]['child'][id] = options;
 
 			}
+
+			function test() {
+				alert('asd');
+			}
+
+
 
 			function add(options) {
 				const { id, source: groupId} = options;
@@ -1344,8 +1472,15 @@ const componentData = {
 			}
 
 			function toggle(e) {
-				const {id, group} = e.dataset;
+				const {id, group} = e.dataset
+					status = taskGroup[group].subGroup.classList.contains("d-none");
+				console.log(e, status);
 				taskGroup[group].subGroup.classList.toggle('d-none');
+
+				if (status) {
+					e.focus();
+				}
+
 				if (!selectedGroup) {
 					selectedGroup = id;
 					return;
@@ -1412,15 +1547,41 @@ const componentData = {
 
 		audioManager(settings, shared = false) {
 			const { guid, components } = shared,
-				{ launch } = settings.relationship;
+				{ launch } = settings.relationship
+				template = {
+					volumeBar(volume) {
+						return `Volume: <span class="amount">${volume}</span>%<br>
+							<input min="0" max="100" value="${volume}" step="5" type="range">`;
+					}
+				};
+			let volume = 20,
+				dom = null;
 
-			function start(e) {
-				alert('1');
+			function toggle(e, ev) {
+				dom.classList.toggle('d-none');
+				dom.style.left = (ev.clientX - dom.offsetWidth/2)+"px";
+			}
+
+			(function init(){
+				dom = document.createElement("div");
+				dom.innerHTML = template.volumeBar(volume);
+				dom.classList.add("volume-control", "d-none");
+				dom.amount = dom.querySelector(".amount");
+				dom.value = dom.querySelector("input");
+				dom.value.onchange = updateVolume;
+				document.body.append(dom);
+			})();
+
+			function updateVolume(e) {
+				const v = e.target.value;
+				e.preventDefault();
+				dom.amount.textContent = v;
+				volume = v;
 			}
 
 			return {
 				launch(e, ev) {
-					start(e);
+					toggle(e, ev);
 				},
 				remove() {
 
@@ -1431,11 +1592,15 @@ const componentData = {
 		displayManager(settings, shared = false) {
 			const { guid, components } = shared,
 				{ window } = settings.relationship,
+				cName = settings.constructorName,
+				bgImage = document.body.querySelector(".background-image"),
+				bgColor = document.body.querySelector(".background-gradient"),
 				template = {
 					window() {
 						const s = screen,
 							b = document.body,
-							d = document.querySelector('.desktop-container');
+							d = document.querySelector('.desktop-container'),
+							c = configs;
 						return `<div class="desktop-details">
 									<div class="desktop-previews">
 										<div class="mini-preview" data-type="image"></div>
@@ -1446,28 +1611,28 @@ const componentData = {
 										<p>Window Size:</p><span>${b.offsetWidth} x ${b.offsetHeight}</span>
 										<p>Desktop Size:</p><span>${d.offsetWidth} x ${d.offsetHeight}</span>
 									</div>
-									<div>
-										<button>Apply</button>
+									<div class="btn-group">
+										<button data-click="${cName}.apply">Apply</button>
 									</div>
 								</div>
 
 								<div class="grid-column-2 desktop-options">
 									<p>Color:</p>
 									<p>
-										<input name="startColor" value="#0000FF" type="color">
-										<input name="endColor" value="#FFFFFF" type="color">
+										<input name="startColor" value="${c.startColor}" type="color">
+										<input name="endColor" value="${c.endColor}" type="color">
 									</p>
 									<p>Alpha:</p>
 									<p>
-										<input name="colOpacity" min="0" max="100" value="100" type="number">
+										<input name="colOpacity" min="0" max="100" value="${c.colOpacity}" type="number">
 									</p>
 									<p>Direction:</p>
 									<p>
-										<input name="colDegree" value="135" min="-90" max="180" type="number"> deg
+										<input name="colDegree" value="${c.colDegree}" min="-180" max="180" step="5" type="number"> deg
 									</p>
 									<p>Image:</p>
 									<p>
-										<select name="wallpaper">${template.options(options.background)}</select>
+										<select name="bgImage">${template.options(options.background)}</select>
 									</p>
 									<p>Position:</p>
 									<p>
@@ -1475,8 +1640,8 @@ const componentData = {
 									</p>
 									<p>Size:</p>
 									<p>
-										<input name="bgWidth" value="100" min="0" type="number">%,
-										<input name="bgHeight" value="100" min="0" type="number">%
+										<input name="bgWidth" value="${c.bgWidth}" min="0" type="number">%,
+										<input name="bgHeight" value="${c.bgHeight}" min="0" type="number">%
 									</p>
 									<p>Repeat:</p>
 									<p>
@@ -1484,13 +1649,33 @@ const componentData = {
 									</p>
 									<p>Opacity:</p>
 									<p>
-										<input name="bgOpacity" type="number" min="0" max="100" value="100"> %
+										<input name="bgOpacity" type="number" min="0" max="100" value="${c.bgOpacity}"> %
 									</p>
 								</div>`;
 					},
 					options(list) {
-						return list.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('');
-					}
+						const sv = [configs.bgRepeat, configs.bgImage, configs.bgPosition];
+						return list.map(o => {
+							sv.indexOf(o[0])
+							return `<option value="${o[0]}" ${sv.indexOf(o[0]) > -1 ? "selected" : ""}>${o[1]}</option>`
+						}).join('');
+					},
+					color(settings) {
+						const { colDegree, startColor, endColor } = settings;
+						return `linear-gradient(${colDegree}deg, ${startColor}, ${endColor})`;
+					},
+					background(settings) {
+						const {
+							bgPosition,
+							bgRepeat,
+							bgImage,
+						} = settings;
+
+						if (!bgImage) {
+							return "";
+						}
+						return `url("img/background/${bgImage}") ${bgRepeat} ${bgPosition}`;
+					},
 				},
 				options = {
 					position: [
@@ -1525,7 +1710,6 @@ const componentData = {
 						["bg11.jpg","Mountain Spring"],
 						["cloud1.png","Rain Cloud"],
 						["cloud2.png","Cloud"],
-						["cat.gif","Cat ani"],
 						["man.gif","Man right ani"],
 						["smile.gif","Smile ani"],
 						["matrix1.gif","Matrix ani"],
@@ -1533,7 +1717,11 @@ const componentData = {
 					]
 				};
 
-			let windowId = false;
+			let windows = null,
+				inputs = null,
+				previewImg,
+				previewCol,
+				configs;
 
 			function createNewWindow() {
 				const options = {
@@ -1541,15 +1729,41 @@ const componentData = {
 					appClass: settings.windowClass,
 					title: settings.name,
 					source: settings.constructorName,
-					theme: 'window-light-blue',
 					icon: settings.icon,
 				};
+
 				return components[window].register(options);
 			}
 
-			function start(e) {
-				if (windowId) {
-					return components[window].focus(windowId);
+			function loadconfigs() {
+				const ls = localStorage.getItem('desktopConfig') || false;
+				if (ls) {
+					configs = JSON.parse(ls);
+				} else {
+					configs = {
+						"bgHeight": "100",
+						"bgImage": "bg9.jpg",
+						"bgOpacity": "100",
+						"bgPosition": "center center",
+						"bgRepeat": "no-repeat",
+						"bgWidth": "100",
+						"colDegree": "135",
+						"colOpacity": "0",
+						"endColor": "#ffffff",
+						"startColor": "#0000ff"
+					};
+				}
+			}
+
+			(function init() {
+				loadconfigs();
+				backgroundChanges(bgColor, bgImage, configs);
+			})();
+
+			function start(e, ev) {
+				ev.preventDefault();
+				if (windows) {
+					return components[window].focus(windows.id);
 				}
 
 				let win = createNewWindow();
@@ -1557,41 +1771,389 @@ const componentData = {
 					return console.log("Failed to create new window!");
 				}
 				win.body.innerHTML = template.window();
-				windowId = win.id;
+				windows = win;
+				previewImg = win.dom.querySelector(`.mini-preview[data-type="image"]`);
+				previewCol = win.dom.querySelector(`.mini-preview[data-type="color"]`);
+				inputs = windows.dom.querySelectorAll("select, input");
+				for(const input of inputs) {
+					input.oninput = applyChanges;
+				}
+				applyChanges(false);
+			}
+
+			function getInputValues() {
+				const data = {};
+				if (inputs.length) {
+					for(const input of inputs) {
+						data[input.name] = input.value;
+					}
+				}
+				return data;
+			}
+
+			function applyChanges(apply = false) {
+				const settings = getInputValues();
+				if (apply === true) {
+					backgroundChanges(bgColor, bgImage, settings);
+					localStorage.setItem('desktopConfig', JSON.stringify(settings))
+
+				}
+				if (!previewImg || !previewCol) {
+					return console.log("Not exist preview box");
+				}
+				backgroundChanges(previewCol, previewImg, settings);
+			}
+
+			function backgroundChanges(e1, e2, settings) {
+				e1.style.background = template.color(settings);
+				e1.style.opacity = settings.colOpacity / 100;
+				e2.style.background = template.background(settings);
+				e2.style.opacity = settings.bgOpacity / 100;
+				e2.style.backgroundSize = `${settings.bgWidth}% ${settings.bgHeight}%`;
 			}
 
 			function close(e) {
-				windowId = 0;
+				windows = null;
 			}
 
 			return {
+				apply(e, ev) {
+					applyChanges(true);
+				},
 				close(e, ev) {
 					close(e);
 				},
 				launch(e, ev) {
-					start(e);
+					start(e, ev);
 				},
 				remove() {
 
 				}
 			}
 		},
+
 		terminal(settings, shared = false) {
-			const { guid, components } = shared,
-				{ launch = false } = settings.relationship;
+			const { guid, components, req } = shared,
+				{ window, datasource: ds } = settings.relationship,
+				template = {
+					afterHeader() {
+						return `<div class="overlay-terminal"></div>`;
+					},
+					afterContent() {
+						return `<div class="footer">
+							<span class="bash-prefix">root@root-desktop:~$</span>
+							<input name="cmd" type="text" value="">
+						</div>`;
+					},
+					comment(text) {
+						return `<font color='gray'>${text}</font>${LINE_BREAK}`;
+					},
+				},
+				ENTER = 13,
+				LINE_BREAK = "<br \>";
+
+			let windows = [];
+
+			function createNewWindow() {
+				const options = {
+					data: false,
+					appClass: settings.windowClass,
+					title: settings.name,
+					source: settings.constructorName,
+					windowSize: settings.windowSize,
+					randomPosition: settings.randomPosition,
+					afterHeader: template.afterHeader(),
+					afterContent: template.afterContent(),
+					icon: settings.icon,
+				};
+				return components[window].register(options);
+			}
 
 			function start(e) {
-				alert('clicked to terminal');
+				if (windows.length >= settings.maxProc) {
+					return console.log('Too much opened window, cannot open more!');
+				}
+				let win = createNewWindow();
+				if (!win) {
+					console.log("Failed to create new window!");
+					return false;
+				}
+				windows.push(win);
+				const input = win.dom.querySelector(`input[name="cmd"]`);
+				win.input = input;
+				input.container = win.body;
+				input.onkeyup = sendCommand;
+				input.focus();
+				return win;
+			}
+
+			function sendCommand(ev) {
+				const e = ev.target;
+				ev.preventDefault();
+				if (ev.which == ENTER){
+					addToContainer(e.container, e.value);
+					e.value = "";
+		        }
+			}
+
+			function open(e, ev) {
+				const {
+					id = false,
+					container = false,
+				} = e.dataset;
+				let win = start(e);
+				if (!win || !container || !id) {
+					return false;
+				}
+				const item = components[ds].get(id);
+				if (!item || !item.url) {
+					return console.log('Corrupt shell file or not exist the physical file!');
+				}
+
+
+				const callbackData = {
+					input: win.input,
+					container: win.input.container
+				};
+				req ("file", item.url, loadFileContent, "json", callbackData);
+				win.h4 = win.dom.querySelector('.header h4');
+				win.h4.dataset["afterText"] = "- " + item.name;
+			}
+
+			function loadFileContent(data, extraData) {
+				const text = data.text || false;
+				if (!text) {
+					return console.log("Wrong content");
+				}
+				const options = {
+					target: extraData.input,
+					container: extraData.container,
+					text: text,
+					delayRange: [10,100],
+					lineEndDelay: 500,
+					lineCommentDelay: 750,
+					index: 0,
+					max: text.length,
+					line: text[0][0],
+					setLine: function(n){ this.line = this.text[n][0]; }
+				}
+				autoTyper(options);
+			}
+
+			function addToContainer(e, text) {
+				e.insertAdjacentHTML('beforeend', text+LINE_BREAK);
+				scrollDown(e);
+			}
+
+			function scrollDown(e) {
+				e.scrollTop = e.scrollHeight;
+			}
+
+			function autoTyper (data){
+				const t = data.target;
+				let txt = "";
+				if (data.line.length > 0) {
+					if (data.target){
+						const delay = Math.random() * (data.delayRange[1] - data.delayRange[0]) + data.delayRange[0];
+						setTimeout(function () {
+							t.value += data.line.charAt(0);
+							data.line = data.line.substr(1);
+							autoTyper(data);
+						}, delay);
+					} else {
+						//if element not exist, example during autowriteing someone close the window
+						data = null;
+					}
+				} else {
+					setTimeout(function () {
+						const c = data.container;
+						addToContainer(c, t.value);
+						t.value = "";
+						setTimeout(function () {
+							const delay = data.text[data.index][1].length * 50 + 1000;
+							addToContainer(c, "")
+							if (data.text[data.index][1].length > 0) {
+								txt += template.comment(data.text[data.index][1]);
+							}
+							addToContainer(c, txt)
+							scrollDown(c)
+							data.index++;
+							if (data.index < data.max){
+								setTimeout(function () {
+									data.setLine(data.index);
+									autoTyper(data);
+								}, delay);
+							} else {
+								setTimeout(function () {
+									//done, we quit
+									addToContainer(c, LINE_BREAK + " ... finished")
+									data = null;
+								}, delay);
+							}
+						}, data.lineCommentDelay);
+					}, data.lineEndDelay);
+				}
+			}
+
+
+			function close(win) {
+				const len = windows.length;
+				let i = 0;
+				for (; i < len; i++) {
+					if (windows[i].id == win.id) {
+						return windows.splice(i, 1);
+					}
+				}
 			}
 
 			return {
+				close(win) {
+					close(win);
+				},
 				launch(e, ev) {
 					start(e);
+				},
+				open(e, ev) {
+					open(e, ev);
 				},
 				remove() {
 
 				}
 			}
 		},
-	},
+		htmlViewer(settings, shared = false) {
+			const { guid, components, req } = shared,
+				{ window, datasource: ds } = settings.relationship;
+
+			let windows = [];
+
+			function createNewWindow() {
+				const options = {
+					data: false,
+					appClass: settings.windowClass,
+					title: settings.name,
+					source: settings.constructorName,
+					windowSize: settings.windowSize,
+					randomPosition: settings.randomPosition,
+					icon: settings.icon,
+				};
+				return components[window].register(options);
+			}
+
+			function start(e) {
+				if (windows.length >= settings.maxProc) {
+					return console.log('Too much opened window, cannot open more!');
+				}
+				let win = createNewWindow();
+				if (!win) {
+					console.log("Failed to create new window!");
+					return false;
+				}
+				windows.push(win);
+				return win;
+			}
+
+			function open(e, ev) {
+				const {
+					id = false,
+					container = false,
+				} = e.dataset;
+				let win = start(e);
+				if (!win || !container || !id) {
+					return false;
+				}
+				const item = components[ds].get(id);
+				if (!item || !item.url) {
+					return console.log('Corrupt file or not exist the physical file!');
+				}
+
+				const callbackData = {
+					body: win.body
+				};
+				console.log(win);
+				req ("file", item.url, loadFileContent, "text", callbackData);
+				win.h4 = win.dom.querySelector('.header h4');
+				win.h4.dataset["afterText"] = "- " + item.name;
+			}
+
+			function loadFileContent(data, extraData) {
+				extraData.body.innerHTML = data;
+
+			}
+
+
+			function close(win) {
+				const len = windows.length;
+				let i = 0;
+				for (; i < len; i++) {
+					if (windows[i].id == win.id) {
+						return windows.splice(i, 1);
+					}
+				}
+			}
+
+			return {
+				close(win) {
+					close(win);
+				},
+				launch(e, ev) {
+					start(e);
+				},
+				open(e, ev) {
+					open(e, ev);
+				},
+				remove() {
+
+				}
+			}
+		},
+
+
+		controlPanel(settings, shared = false) {
+			const { guid, components } = shared,
+				{ window } = settings.relationship,
+				cName = settings.constructorName,
+				template = {};
+
+			let windows = null,
+				configs;
+
+			function createNewWindow() {
+				const options = {
+					data: false,
+					appClass: settings.windowClass,
+					title: settings.name,
+					source: settings.constructorName,
+					icon: settings.icon,
+				};
+
+				return components[window].register(options);
+			}
+
+
+			function start(e, ev) {
+
+			}
+
+
+			function close(e) {
+				windows = null;
+			}
+
+			return {
+				apply(e, ev) {
+					applyChanges(true);
+				},
+				close(e, ev) {
+					close(e);
+				},
+				launch(e, ev) {
+					start(e, ev);
+				},
+				remove() {
+
+				}
+			}
+		},
+	}
 }

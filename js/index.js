@@ -9,8 +9,8 @@ function Core() {
 			"alert": "alert",
 			"url": "link",
 			"shell": "terminal",
-			"app.task": "taskManager",
-			"app.display": "desktopManager"
+			"task": "taskManager",
+			"display": "desktopManager"
 		};
 
 	const shared = {
@@ -25,6 +25,7 @@ function Core() {
 		getPath,
 		isEmpty,
 		objClone,
+		blurable
 	}
 
 	loadScript("script", "components", () => {
@@ -66,6 +67,7 @@ function Core() {
 		if (target.length < 2 || !c[target[0]]) {
 			return console.log("Component not exist!");
 		}
+		elem.focus();
 		c[target[0]][target[1]](elem, event);
 	}
 
@@ -86,6 +88,11 @@ function Core() {
 		} else if (action.indexOf(".") > -1) {
 			callComponent(e, action, ev);
 		}
+	}
+
+	function blurable(dom, func) {
+		dom.tabIndex = -1;
+		dom.onblur = func(dom);
 	}
 
 	function getActionNode (e, target, max = 3) {
@@ -132,15 +139,6 @@ function Core() {
 		return "s".repeat(len).replace(/s/g, s4);
 	}
 
-	function getScriptPath(type, name) {
-		if (type == "script") {
-			return `js/${name}.js`;
-		} else if (type == "json") {
-			return `db/${name}.json`;
-		}
-		return false;
-	}
-
 	function getNamedDate(d) {
 		const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
 			months = ["January","February","March","April","May","June","July","August", "September", "October", "November", "December"];
@@ -169,7 +167,18 @@ function Core() {
 		return JSON.parse(JSON.stringify(obj));
 	}
 
-	function loadScript (type, name, callback = false, responseType = 'text') {
+	function getScriptPath(type, name) {
+		if (type == "script") {
+			return `js/${name}.js`;
+		} else if (type == "json") {
+			return `db/${name}.json`;
+		} else if (type == "file") {
+			return `files/${name}`;
+		}
+		return false;
+	}
+
+	function loadScript (type, name, callback = false, responseType = 'text', callbackData = false) {
 		const url = getScriptPath(type, name);
 
 		if (!type || !name || !url) {
@@ -190,7 +199,7 @@ function Core() {
 						head.insertBefore(data, head.lastChild);
 					}
 					if ( callback && typeof callback == "function") {
-						callback(this.response);
+						callback(this.response, callbackData);
 					}
 				} else {
 					console.log("Script loading failed, maybe file not exist?", url);

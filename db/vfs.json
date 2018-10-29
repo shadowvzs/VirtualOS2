@@ -22,7 +22,7 @@
 				   "lastmodify":1503812702,
 				   "readonly":false,
 				   "onstartmenu": true,
-				   "url":"./page/resume_info.html"
+				   "url":"resume_info.html"
 				},
 				{
 				   "name": "pwAdmin",
@@ -34,7 +34,7 @@
 				   "lastmodify":1503812702,
 				   "readonly":false,
 				   "onstartmenu": true,
-				   "url":"./page/pwadmin.html"
+				   "url":"pwadmin.html"
 				},
 				{
 				   "name": "Gyozelem.ro",
@@ -46,7 +46,7 @@
 				   "lastmodify":1503812702,
 				   "readonly":false,
 				   "onstartmenu": true,
-				   "url":"./page/gyozelem.ro.html"
+				   "url":"gyozelem.ro.html"
 				},
 				{
 				   "name": "Overall",
@@ -58,7 +58,7 @@
 				   "lastmodify":1503812702,
 				   "readonly":false,
 				   "onstartmenu": true,
-				   "url":"./page/references.html"
+				   "url":"references.html"
 				}
 			]
 		},
@@ -84,7 +84,7 @@
 				   "lastmodify":1503812702,
 				   "readonly":false,
 				   "onstartmenu": true,
-				   "url":"./page/resume.html"
+				   "url":"resume.html"
 				}
 			]
 		},
@@ -111,7 +111,7 @@
 				   "readonly":false,
 				   "ondesktop": true,
 				   "onstartmenu": true,
-				   "url":"./page/plans.html"
+				   "url":"plans.html"
 				}
 		   ]
 		},
@@ -147,7 +147,7 @@
 						   "createtime":1503812702,
 						   "lastmodify":1503812702,
 						   "readonly":false,
-						   "url":"./page/ubuntu_1_filesystem.sh"
+						   "url":"ubuntu_1_filesystem.sh"
 						},
 						{
 						   "name": "Ubuntu: Advanced",
@@ -158,7 +158,7 @@
 						   "createtime":1503812702,
 						   "lastmodify":1503812702,
 						   "readonly":false,
-						   "url":"./page/ubuntu_2_advanced.sh"
+						   "url":"ubuntu_2_advanced.sh"
 						}
 					]
 				},
@@ -183,7 +183,7 @@
 						   "lastmodify":1503812702,
 						   "readonly":false,
 						   "onstartmenu": true,
-						   "url":"./page/php_1_curl.html"
+						   "url":"php_1_curl.html"
 						}
 					]
 				},
@@ -208,7 +208,7 @@
 						   "lastmodify":1503812702,
 						   "readonly":false,
 						   "onstartmenu": true,
-						   "url":"./page/css.html"
+						   "url":"css.html"
 						}
 					]
 				},
@@ -233,7 +233,7 @@
 						   "lastmodify":1503812702,
 						   "readonly":false,
 						   "onstartmenu": true,
-						   "url":"./page/javascript.html"
+						   "url":"javascript.html"
 						}
 					]
 				},
@@ -258,7 +258,7 @@
 						   "createtime":1503812702,
 						   "lastmodify":1503812702,
 						   "readonly":false,
-						   "url":"./page/git_1_basics.sh"
+						   "url":"git_1_basics.sh"
 						},
 						{
 						   "name": "Git: List & Log",
@@ -269,7 +269,7 @@
 						   "createtime":1503812702,
 						   "lastmodify":1503812702,
 						   "readonly":false,
-						   "url":"./page/git_2_list_log.sh"
+						   "url":"git_2_list_log.sh"
 						},
 						{
 						   "name": "Git: Up & Down",
@@ -280,7 +280,7 @@
 						   "createtime":1503812702,
 						   "lastmodify":1503812702,
 						   "readonly":false,
-						   "url":"./page/git_3_get_put.sh"
+						   "url":"git_3_get_put.sh"
 						},
 						{
 						   "name": "Git: Branch",
@@ -291,7 +291,7 @@
 						   "createtime":1503812702,
 						   "lastmodify":1503812702,
 						   "readonly":false,
-						   "url":"./page/git_4_branch.sh"
+						   "url":"git_4_branch.sh"
 						},
 						{
 						   "name": "Git: Tag",
@@ -302,7 +302,7 @@
 						   "createtime":1503812702,
 						   "lastmodify":1503812702,
 						   "readonly":false,
-						   "url":"./page/git_5_tag.sh"
+						   "url":"git_5_tag.sh"
 						}
 					]
 				}
@@ -330,7 +330,7 @@
 				   "lastmodify":1503812702,
 				   "readonly":false,
 				   "onstartmenu": true,
-				   "url":"./page/linux.html"
+				   "url":"linux.html"
 				},
 				{
 				   "name": "and rest",
@@ -342,7 +342,7 @@
 				   "lastmodify":1503812702,
 				   "readonly":false,
 				   "onstartmenu": true,
-				   "url":"./page/resthobby.html"
+				   "url":"resthobby.html"
 				}
 			]
 	   },
@@ -423,18 +423,6 @@
 			]
 		},
 		{
-		   "name": "Terminal",
-		   "id":"9GlbDv7JECNkjx549TEUjq6PIcj8jFyO",
-		   "description": "Typing for fun",
-		   "icon":"shell",
-		   "type":"shell",
-		   "createtime":1503812702,
-		   "lastmodify":1503812702,
-		   "readonly":false,
-		   "ondesktop": true,
-		   "onstartmenu": false,
-		   "url":"./page/empty.html"
-		},					{
 		   "name": "Log File",
 		   "id":"YxQvvNy5Y6EbUiai1Q566yWihRxaU4yk",
 		   "description": "Changes on page was loged here",
@@ -445,13 +433,13 @@
 		   "readonly":false,
 		   "ondesktop": true,
 		   "onstartmenu": false,
-		   "url":"./page/pagelog.html"
+		   "url":"pagelog.html"
 		},
 		{
 			"name": "Control Panel",
 			"id": "KPXt5SgpSHyLnfgxmR9H37oKNRTPNrjA",
 			"description": "System settings for this virtual OS",
-			"icon":"folder",
+			"icon":"settings",
 			"readonly":true,
 			"settings":true,
 			"createtime":1503812702,
@@ -463,24 +451,44 @@
 				   "id":"n6QNm0wlJcvkOnU4OcPke3u6sYaMBFYj",
 				   "description": "Display settings",
 				   "icon":"sys_display",
-				   "type":"app.display",
+				   "type":"app",
 				   "createtime":1503812702,
 				   "lastmodify":1503812702,
-				   "hidetype":true,
 				   "readonly":true,
-				   "url":["./page/pagelog.html"]
+				   "app":"pagelog.html"
 				},
 				{
 				   "name": "Running Tasks",
 				   "id":"Wb2jW80frI48tPj5Fr6AoL2zJbyno9LR",
 				   "description": "Overview the running tasks",
 				   "icon":"sys_task",
-				   "type":"app.task",
+				   "type":"app",
 				   "createtime":1503812702,
 				   "lastmodify":1503812702,
-				   "hidetype":true,
 				   "readonly":true
-				}
+                },
+                {
+           		   "name": "Terminal",
+           		   "id":"9GlbDv7JECNkjx549TEUjq6PIcj8jFyO",
+           		   "description": "Typing for fun",
+           		   "icon":"shell",
+           		   "type":"shell",
+           		   "createtime":1503812702,
+           		   "lastmodify":1503812702,
+           		   "readonly":true,
+           		   "url":"empty.html"
+           		},
+                {
+           		   "name": "Sound Control",
+           		   "id":"aGlb1v7JECNkjx549TEUjqnPacj8jFy2",
+           		   "description": "Typing for fun",
+           		   "icon":"soundon",
+           		   "type":"app",
+           		   "createtime":1503812702,
+           		   "lastmodify":1503812702,
+           		   "readonly":true,
+
+           		},
 			]
 		}
 	]
