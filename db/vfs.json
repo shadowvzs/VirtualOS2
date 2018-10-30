@@ -110,7 +110,7 @@
 				   "lastmodify":1503812702,
 				   "readonly":false,
 				   "ondesktop": true,
-				   "onstartmenu": true,
+				   "onstartmenu": false,
 				   "url":"plans.html"
 				}
 		   ]
@@ -419,7 +419,6 @@
 					"onstartmenu": true,
 					"text": "Hello, my mail address on Skype is: shadowvzs@hotmail.com"
 				}
-
 			]
 		},
 		{
@@ -486,9 +485,8 @@
            		   "type":"app",
            		   "createtime":1503812702,
            		   "lastmodify":1503812702,
-           		   "readonly":true,
-
-           		},
+           		   "readonly":true
+           		}
 			]
 		}
 	]

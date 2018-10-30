@@ -177,6 +177,8 @@
     vertical-align: middle;
     text-decoration: none;
 	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
 }
 
 .start-menu ul li img {

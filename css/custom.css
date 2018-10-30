@@ -46,7 +46,6 @@ section {
 
 #desktop .background-image {
 	height: 100%;
-	background-image: url(../img/background/bg9.jpg);
 	background-position: center;
 }
 
@@ -363,6 +362,12 @@ time#clock:hover:after {
 	padding: 10px 0;
 }
 
+.desktop-details button {
+	padding: 5px 10px;
+	border: 1px outset #eee;
+	border-radius: 3px;
+}
+
 .desktop-settings input[type="number"] {
 	width: 75px;
 }
@@ -391,13 +396,113 @@ time#clock:hover:after {
 .desktop-options p {
 	font-family: sans;
 	font-size: 12px;
-	min-width: 70px
+	min-width: 70px;
+	color: #444;
+}
+
+.desktop-options p:nth-child(odd),
+.desktop-info p {
+	font-weight: bold;
+	text-align: left;
 }
 
 .desktop-options input,
 .desktop-options select {
 	font-family: sans;
 	font-size: 12px;
+	padding: 3px 5px;
+	border: 1px solid #aaa;
+	border-radius: 3px;
+}
+
+/* System manager window */
+
+
+.system-manager .container {
+	background-color: rgba(150, 150, 150, 0.85);
+}
+
+.system-manager .content {
+	display: table;
+	padding: 0;
+	background: linear-gradient(
+		rgba(255,255,255,0.85),
+		rgba(210,210,255,0.85)
+	);
+	width: 100%;
+	padding-bottom: 15px;
+}
+
+.system-manager .row {
+	cursor: pointer;
+	display: table-row;
+	line-height: 20px;
+}
+
+
+.system-manager .row .cell:nth-child(4n+1) {
+	padding-left: 15px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.system-manager .row .cell:nth-child(4n+2) {
+    white-space: nowrap;
+    border-left: 1px dotted rgba(70,70,70,0.5);
+}
+
+.system-manager .row .cell:nth-child(4) {
+    min-width: 35px;
+    max-width: 35px;
+	padding: 3px 0px;
+	text-align: center;
+}
+
+.system-manager .row .cell:not(:first-child) {
+	border-left: 1px dotted rgba(70,70,70,0.5);
+}
+
+.system-manager .row:first-child .cell {
+	border-bottom: 1px solid #555;
+}
+
+.system-manager .row:first-child {
+	font-family: arial;
+	font-size: 16px;
+	line-height: 24px;
+	background-color: #fff;
+	background: -webkit-linear-gradient(
+		rgba(255, 255, 255, 0.5),
+		rgba(200, 200, 200, 0.5)
+	);
+	background: -o-linear-gradient(
+		rgba(255, 255, 255, 0.5),
+		rgba(200, 200, 200, 0.5)
+	);
+	background: -moz-linear-gradient(
+		rgba(255, 255, 255, 0.5),
+		rgba(200, 200, 200, 0.5)
+		);
+	background: linear-gradient(
+		rgba(255, 255, 255, 0.5),
+		rgba(200, 200, 200, 0.5)
+	);
+}
+
+
+.system-manager .row:hover:not(:first-child) {
+	border: 1px dotted rgba(70,70,70,0.7);
+	background-color: rgba(255,255,200,0.5);
+}
+
+.system-manager .row:hover:not(:first-child) .cell {
+	color: rgba(0,0,0,0.9);
+}
+
+.system-manager .cell {
+	display: table-cell;
+	padding: 3px 10px;
+	color: rgba(100, 100, 100, 0.9);
 }
 
 /* WINDOW END */

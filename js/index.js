@@ -67,13 +67,12 @@ function Core() {
 		if (target.length < 2 || !c[target[0]]) {
 			return console.log("Component not exist!");
 		}
-		elem.focus();
 		c[target[0]][target[1]](elem, event);
 	}
 
 	function globalEventandler(ev) {
 		const e = getActionNode(ev.target, ev.type);
-		if (!e) { return console.log('Element not found');; }
+		if (!e) { return; }
 		const d = e.dataset,
 			action = d[ev.type];
 		if (d.event == true || ev.type != "click") {
@@ -92,7 +91,7 @@ function Core() {
 
 	function blurable(dom, func) {
 		dom.tabIndex = -1;
-		dom.onblur = func(dom);
+		dom.onblur = func;
 	}
 
 	function getActionNode (e, target, max = 3) {

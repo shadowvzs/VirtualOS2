@@ -16,6 +16,7 @@ const componentData = {
 			icon: "sys_task",
 			launchbar: true,
 			focusClass: "active",
+			windowClass: ["system-manager", "window-light-blue"],
 			group: ".task-win-group",
 			container: ".task-win-container",
 			maxProc: 1,
@@ -443,7 +444,7 @@ const componentData = {
 				return window.body;
 			}
 
-			function loadContent(list) {
+			function init(list) {
 				for (const item of list) {
 					if (!item.ondesktop) { continue; }
 					CreateDesktopIcon(item);
@@ -504,9 +505,9 @@ const componentData = {
 						["New Folder", cName, "createNew", [targetId, container, 'dir']],
 						["New File", cName, "createNew", [targetId, container, 'html']],
 						["Paste", cName, "paste", [targetId, container, type]],
-					//	["Arrange Icon", relationship.clipboard, "addItems", ['fs', id, 'true']],
+						//["Arrange Icon", relationship.clipboard, "addItems", ['fs', id, 'true']],
 						["Terminal", cName, "remove", [targetId]],
-				//		["Settings", display, "launch", [targetId]],
+						//["Settings", display, "launch", [targetId]],
 						["Properties", display, "launch", [targetId]],
 					];
 
@@ -525,7 +526,6 @@ const componentData = {
 						["Delete", cName, "remove", [targetId]],
 						["Properties", cName, "properties", [targetId]],
 					];
-
 
 					if (item.type == "dir") {
 						list[0][0] = "Open";
@@ -629,7 +629,6 @@ const componentData = {
 				for (let [sourceType, itemId, remove] of items) {
 					if (sourceType == "fs") {
 						remove = remove == "true";
-						console.log(targetId, itemId, remove);
 						const item = datasource.copyItem(targetId, itemId, remove);
 						if (item && targetType == "free") {
 							CreateDesktopIcon(item, containerDOM, newWindow);
@@ -679,14 +678,15 @@ const componentData = {
 				remove(e) {
 					remove(getParent(e));
 				},
-				loadContent(list) {
-					loadContent(list);
+				init(list) {
+					init(list);
 				}
 			}
 		},
 
 		startMenuManager(settings, shared = false) {
 			const taskbar = document.body.querySelector('footer#taskbar'),
+				{ blurable } = shared,
 				cName = settings.constructorName,
 				ds = settings.relationship.datasource;
 			let startMenu, selected = false;
@@ -717,7 +717,7 @@ const componentData = {
 
 				},
 				mainList(item) {
-					return `<li data-click="${cName}.select" data-extra="${item.id}">
+					return `<li data-click="${cName}.select" data-extra="${item.id}" title="${item.name}">
 							<img src="./img/startmenu/${item.icon}.png" width="22" height="22"> ${item.name}
 						</li>`;
 				},
@@ -730,17 +730,22 @@ const componentData = {
 					</ul>`;
 				},
 				subItem(item) {
-					return `<li data-click="${ds}.execute" data-id="${item.id}" data-new="true" data-type="startSubIcon">
+					return `<li data-click="${ds}.execute" data-id="${item.id}" data-new="true" data-type="startSubIcon" title="${item.name}">
 							<img src="./img/startmenu/${item.icon}.png"> ${item.name}
 						</li>`;
 				}
 			}
 
 
-			function loadContent(list) {
+			function init(list) {
 				taskbar.insertAdjacentHTML('afterbegin', template.startMenu(list));
 				startMenu = taskbar.querySelector('.start-menu');
+				blurable(startMenu, blurCb);
 				select(list[0].id);
+			}
+
+			function blurCb(ev) {
+				startMenu.classList.toggle('show');
 			}
 
 			function toggleList(id) {
@@ -768,12 +773,13 @@ const componentData = {
 				},
 				toggle() {
 					startMenu.classList.toggle('show');
+					startMenu.focus();
 				},
 				remove() {
 
 				},
-				loadContent(list) {
-					loadContent(list);
+				init(list) {
+					init(list);
 				}
 			}
 		},
@@ -807,11 +813,11 @@ const componentData = {
 				}
 
 				if (desktopItems.length) {
-					components[relationship.desktop].loadContent(desktopItems);
+					components[relationship.desktop].init(desktopItems);
 				}
 
 				if (startMenuItems.length) {
-					components[relationship.startmenu].loadContent(startMenuItems);
+					components[relationship.startmenu].init(startMenuItems);
 				}
 			}
 
@@ -1225,7 +1231,7 @@ const componentData = {
 					height = "100%";
 					dom.style.top = '0px';
 					dom.style.left = '0px';
-				} else {
+				} else if (options.randomPosition) {
 					const body = document.body,
 						{
 							minW = 400,
@@ -1256,7 +1262,7 @@ const componentData = {
 				dom.id = "win_" + options.id;
 				dom.dataset.id = options.id;
 				dom.dataset.click = cName+".focus";
-				dom.classList.add('window', ...options.appClass);
+				dom.classList.add('window', ...(options.appClass || []));
 				const cont = dom.querySelector(settings.contentSelector);
 				options.dom = dom;
 				options.header = dom.querySelector(".header");
@@ -1344,7 +1350,7 @@ const componentData = {
 		},
 
 		launchBar(settings, shared = false) {
-			const { guid, components } = shared,
+			const { guid, components, blurable } = shared,
 				cName = settings.constructorName,
 				container = document.body.querySelector(settings.container),
 				toggleButton = document.body.querySelector(settings.toggle),
@@ -1358,6 +1364,11 @@ const componentData = {
 
 			if (toggleButton) {
 				toggleButton.dataset.click = `${settings.constructorName}.toggle`;
+				blurable(container, blurCb);
+			}
+
+			function blurCb(ev) {
+				toggle(ev.target);
 			}
 
 			function add(appData) {
@@ -1369,6 +1380,7 @@ const componentData = {
 
 			function toggle(e) {
 				container.classList.toggle('d-iblock');
+				container.focus();
 			}
 
 			return {
@@ -1411,14 +1423,71 @@ const componentData = {
 									<div data-sub-group="${group}"></div>
 								</figure>`;
 					},
+					killBtn(id) {
+						return `<div class="close" click="${cName}.closeWindow" data-id="${id}">&times;</div>`;
+					},
+					runningTaskHeader() {
+						const header = {
+							name: "Task",
+							id: "ID",
+							action: "Kill"
+						};
+						return template.runningTasks(header);
+					},
+					runningTaskList(objList) {
+						const header = template.runningTaskHeader();
+						let body = [];
+						for (const key in objList) {
+							const id = objList[key].dom.dataset.id || 0;
+							body.push(template.runningTasks({
+								name: key,
+								id: id,
+								action: template.killBtn(id)
+							}));
+						}
+
+						return header + body.join('');
+//						<div class="close" click="${cName}.closeWindow">&times;</div>
+					},
+					runningTasks(d) {
+						return `
+						<div class="row">
+							<div class="cell"> ${d.name} </div>
+							<div class="cell">${d.id}</div>
+							<div class="cell">${d.action}</div>
+						</div>`;
+					}
 				},
 				focusClass = settings.focusClass;
 
 			let taskGroup = {}
-				selectedGroup = null;
+				selectedGroup = null,
+				windows = null;
 
-			function start(e) {
-				alert('clicked to taskManager');
+			function createNewWindow() {
+				const options = {
+					data: false,
+					appClass: settings.windowClass,
+					title: settings.name,
+					source: settings.constructorName,
+					icon: settings.icon,
+				};
+				return components[window].register(options);
+			}
+
+			function start(e, ev) {
+				ev.preventDefault();
+				if (windows) {
+					return components[window].focus(windows.id);
+				}
+
+				let win = createNewWindow();
+				if (!win) {
+					return console.log("Failed to create new window!");
+				}
+				win.body.innerHTML = template.runningTaskList(taskGroup);
+				windows = win;
+
 			}
 
 			function getSubContainer(groupId) {
@@ -1432,21 +1501,18 @@ const componentData = {
 					group.insertAdjacentHTML('beforeend', template.taskGroupBtn(options));
 					taskGroup[groupId]['dom'] = group.lastChild;
 					taskGroup[groupId]['subGroup'] = group.lastChild.querySelector(`[data-sub-group="${groupId}"]`);
-					blurable(group.lastChild, test);
+					blurable(group.lastChild, blurCb);
 				}
 
 				const subContainer = getSubContainer(groupId);
 				subContainer.insertAdjacentHTML('beforeend', template.taskBtn(options));
 				options.btn = subContainer.lastChild;
 				taskGroup[groupId]['child'][id] = options;
-
 			}
 
-			function test() {
-				alert('asd');
+			function blurCb(e) {
+				toggle(e.target);
 			}
-
-
 
 			function add(options) {
 				const { id, source: groupId} = options;
@@ -1474,23 +1540,11 @@ const componentData = {
 			function toggle(e) {
 				const {id, group} = e.dataset
 					status = taskGroup[group].subGroup.classList.contains("d-none");
-				console.log(e, status);
 				taskGroup[group].subGroup.classList.toggle('d-none');
-
-				if (status) {
-					e.focus();
-				}
 
 				if (!selectedGroup) {
 					selectedGroup = id;
 					return;
-				}
-
-				if (selectedGroup == id) {
-					// unfocus
-					// selectedGroup = null;
-				} else {
-					// simple focus
 				}
 			}
 
@@ -1534,7 +1588,7 @@ const componentData = {
 					add(options);
 				},
 				launch(e, ev) {
-					start(e);
+					start(e, ev);
 				},
 				remove() {
 
@@ -1546,7 +1600,7 @@ const componentData = {
 		},
 
 		audioManager(settings, shared = false) {
-			const { guid, components } = shared,
+			const { guid, components, blurable } = shared,
 				{ launch } = settings.relationship
 				template = {
 					volumeBar(volume) {
@@ -1560,6 +1614,7 @@ const componentData = {
 			function toggle(e, ev) {
 				dom.classList.toggle('d-none');
 				dom.style.left = (ev.clientX - dom.offsetWidth/2)+"px";
+				dom.value.focus();
 			}
 
 			(function init(){
@@ -1569,8 +1624,13 @@ const componentData = {
 				dom.amount = dom.querySelector(".amount");
 				dom.value = dom.querySelector("input");
 				dom.value.onchange = updateVolume;
+				dom.value.onblur = blurCb;
 				document.body.append(dom);
 			})();
+
+			function blurCb(ev) {
+				toggle(ev.target, ev)
+			}
 
 			function updateVolume(e) {
 				const v = e.target.value;
@@ -2021,6 +2081,7 @@ const componentData = {
 				}
 			}
 		},
+
 		htmlViewer(settings, shared = false) {
 			const { guid, components, req } = shared,
 				{ window, datasource: ds } = settings.relationship;
@@ -2070,7 +2131,7 @@ const componentData = {
 				const callbackData = {
 					body: win.body
 				};
-				console.log(win);
+
 				req ("file", item.url, loadFileContent, "text", callbackData);
 				win.h4 = win.dom.querySelector('.header h4');
 				win.h4.dataset["afterText"] = "- " + item.name;
