@@ -46,8 +46,8 @@
 		text-overflow: ellipsis;
 	}
 
-	.window .header .close,
-	.window .header .minimize {
+	.window .close,
+	.window .minimize {
 		position: relative;
 		margin-left: 1px;
 		width: 22px;
@@ -91,6 +91,7 @@
 }
 
 .window-light-blue .minimize {
+	color: #fff;
 	border: 1px outset rgba(50, 50, 75, 0.5);
 	background: linear-gradient(top, #eef 0%, #bbd 100%);
 	background: -moz-linear-gradient(top, #eef 0%, #bbd 100%);
@@ -122,6 +123,7 @@
 }
 
 .window-light-blue .close {
+	color: #fff;
 	border: 1px outset rgba(50, 50, 75, 0.5);
 	background: linear-gradient(top, #fdd 0%, #c99 100%);
 	background: -moz-linear-gradient(top, #fdd 0%, #c99 100%);

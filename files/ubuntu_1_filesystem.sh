@@ -18,7 +18,7 @@
 ["tar -zcvf myarchive.tar.gz ./myFolder","create archive from <b>myFolder</b> folder with <b>myarchive</b> file name and <b>.tar.gz</b> file extension"],
 ["nano myfile.txt","edit <b>myfile.txt</b> (close with <b>ctrl+x</b>)"],
 ["sed s/oldtext/newtext/g ./mytextfile.txt > ./newtextfile.txt","search and replace every <b>oldtext</b> to <b>newtext</b> from <b>mytextfile.txt</b> and output will be wrote to <b>newtextfile</b>"],
-["echo $(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')","show the current ip (could be lan ip if pc is in lan)<br>withou echo you can store in variable if you use a shell file"],
+["echo $(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\\.){3}[0-9]*).*/\\2/p')","show the current ip (could be lan ip if pc is in lan)<br>withou echo you can store in variable if you use a shell file"],
 ["echo $(cat /etc/iweb.conf | grep -m 1 address)| cut -d' ' -f 3","open <b>/etc/iweb.conf</b><br>search after <b>address</b> text and grab that line<br>split/explode line with \" \" character and return the 3rd index"],
 ["wget -c http://www.example.org/files/archive.zip","download <b>archive.zip</b> (<b>-c</b> if it was interupted then continue from last download stat)"],
 ["sed -i 's/\r$//' shellfile.sh","convert line ending to unix line ending in <b>shellfile.sh</b> file<br><b>Note:</b> shell file cannot run with windows line ending"]

@@ -67,6 +67,10 @@ function Core() {
 		if (target.length < 2 || !c[target[0]]) {
 			return console.log("Component not exist!");
 		}
+
+		shared.components['audioManager'].play(
+			target[1] == "close" ? "close" : "click"
+		);
 		c[target[0]][target[1]](elem, event);
 	}
 

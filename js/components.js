@@ -730,7 +730,7 @@ const componentData = {
 					</ul>`;
 				},
 				subItem(item) {
-					return `<li data-click="${ds}.execute" data-id="${item.id}" data-new="true" data-type="startSubIcon" title="${item.name}">
+					return `<li data-click="${ds}.execute" data-id="${item.id}" data-new="true" data-type="startSubIcon" data-container="-1" title="${item.name}">
 							<img src="./img/startmenu/${item.icon}.png"> ${item.name}
 						</li>`;
 				}
@@ -931,7 +931,6 @@ const componentData = {
 				}
 				const item = searchInVfs(vfs.child, id),
 					app = components[assoc[item.type] || "-"] || false;
-				console.log('open with: '+ assoc[item.type], app);
 
 				if (!item) {
 					return console.log("File corrupt or not exist anymore!");
@@ -1206,8 +1205,8 @@ const componentData = {
 
 				function dragHandler(e){
 					const { width, height } = e1.style,
-						{ move = false, id = false } = e1.dataset;
-					if (move || width == "100%" || height == "100%")  {
+						{ move = "false", id = false } = e1.dataset;
+					if (move == "true" || width == "100%" || height == "100%")  {
 						return;
 					}
 					if (id && e1.classList.contains('window')) {
@@ -1273,11 +1272,10 @@ const componentData = {
 				customizeWindow(dom, options);
 				task.add(options);
 				focus(id);
+				if (shared.taskPanel) {
+					shared.taskPanel.addToList(options);
+				}
 				return options;
-			}
-
-			function register(options) {
-				return create(options);
 			}
 
 			function minimize(id) {
@@ -1294,6 +1292,9 @@ const componentData = {
 					win = windows[id],
 					task = components[taskMName];
 				if (!win) { return console.log('Window not found'); }
+				if (shared.taskPanel) {
+					shared.taskPanel.removeFromList(win);
+				}
 				components[win.source].close(win);
 				win.dom.remove();
 				task.close(windows[id]);
@@ -1423,8 +1424,8 @@ const componentData = {
 									<div data-sub-group="${group}"></div>
 								</figure>`;
 					},
-					killBtn(id) {
-						return `<div class="close" click="${cName}.closeWindow" data-id="${id}">&times;</div>`;
+					killBtn(id, group) {
+						return `<div class="close" data-click="${window}.close" data-id="${id}" data-group="${group}">✖</div>`;
 					},
 					runningTaskHeader() {
 						const header = {
@@ -1434,27 +1435,34 @@ const componentData = {
 						};
 						return template.runningTasks(header);
 					},
+					taskLine(obj) {
+						return template.runningTasks(obj);
+					},
 					runningTaskList(objList) {
 						const header = template.runningTaskHeader();
 						let body = [];
 						for (const key in objList) {
-							const id = objList[key].dom.dataset.id || 0;
-							body.push(template.runningTasks({
+							const id = objList[key].dom.dataset.id || "";
+							body.push(template.taskLine({
 								name: key,
 								id: id,
-								action: template.killBtn(id)
+								group: objList[key].dom.dataset.group || "",
+								action: template.killBtn(id, group)
 							}));
+
 						}
 
 						return header + body.join('');
-//						<div class="close" click="${cName}.closeWindow">&times;</div>
 					},
 					runningTasks(d) {
+						if (!d.action) {
+							d.action = template.killBtn(d.id, d.group);
+						}
 						return `
-						<div class="row">
-							<div class="cell"> ${d.name} </div>
-							<div class="cell">${d.id}</div>
-							<div class="cell">${d.action}</div>
+						<div class="row" data-group="${d.group}" data-id="${d.id}">
+							<div class="cell" data-type="name">> ${d.name} </div>
+							<div class="cell" data-type="id" title="${d.id}">${d.id.substr(0, 8)}</div>
+							<div class="cell" data-type="action">${d.action}</div>
 						</div>`;
 					}
 				},
@@ -1475,6 +1483,40 @@ const componentData = {
 				return components[window].register(options);
 			}
 
+			function getGroupTask(group, id = false) {
+				let selector = `.row[data-group="${group}"]`;
+				if (id) {
+					selector += `[data-id="${id}"]`;
+				}
+				return windows.body.querySelectorAll(selector);
+			}
+
+			function addToList(options) {
+				const {
+						source: group,
+						id = false,
+						title,
+						subtitle = ""
+					} = options,
+				 	doms = getGroupTask(group, id),
+					taskOption = {
+						group,
+						id,
+						name: (title+subtitle)
+					};
+				windows.body.insertAdjacentHTML('beforeend', template.taskLine(taskOption));
+			}
+
+			function removeFromList(options) {
+				const { source: group, id = false } = options,
+					doms = getGroupTask(group, id);
+				if (doms.length) {
+					for (const dom of doms) {
+						dom.remove();
+					}
+				}
+			}
+
 			function start(e, ev) {
 				ev.preventDefault();
 				if (windows) {
@@ -1487,7 +1529,9 @@ const componentData = {
 				}
 				win.body.innerHTML = template.runningTaskList(taskGroup);
 				windows = win;
-
+				win.addToList = addToList;
+				win.removeFromList = removeFromList;
+				shared.taskPanel = win
 			}
 
 			function getSubContainer(groupId) {
@@ -1521,6 +1565,11 @@ const componentData = {
 
 			function close(options) {
 				const { id, source: groupId} = options;
+				if (groupId == cName) {
+					shared.taskPanel = null;
+					windows = null;
+				}
+				if (!taskGroup[groupId]) { return; }
 				taskGroup[groupId]['child'][id].btn.remove();
 				delete taskGroup[groupId]['child'][id];
 				if (Object.keys(taskGroup[groupId].child).length == 0) {
@@ -1607,6 +1656,10 @@ const componentData = {
 						return `Volume: <span class="amount">${volume}</span>%<br>
 							<input min="0" max="100" value="${volume}" step="5" type="range">`;
 					}
+				},
+				sounds = {
+					click: new Audio("audio/click.mp3"),
+					close: new Audio("audio/close.mp3")
 				};
 			let volume = 20,
 				dom = null;
@@ -1639,9 +1692,20 @@ const componentData = {
 				volume = v;
 			}
 
+			function play(name) {
+				if (!sounds[name]) {
+					return;
+				}
+				sounds[name].volume = volume / 100;
+				sounds[name].play();
+			}
+
 			return {
 				launch(e, ev) {
 					toggle(e, ev);
+				},
+				play(name) {
+					play(name);
 				},
 				remove() {
 

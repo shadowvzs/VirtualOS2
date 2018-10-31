@@ -489,7 +489,6 @@ time#clock:hover:after {
 	);
 }
 
-
 .system-manager .row:hover:not(:first-child) {
 	border: 1px dotted rgba(70,70,70,0.7);
 	background-color: rgba(255,255,200,0.5);
@@ -506,6 +505,74 @@ time#clock:hover:after {
 }
 
 /* WINDOW END */
+
+.html-viewer .html-content {
+	font-family: cursive;
+}
+
+.html-viewer .table-left {
+	display: table-cell;
+	text-align: left;
+}
+
+.html-viewer .list-tree ul li {
+	position: relative;
+	left: 20px;
+	line-height: 1em;
+}
+
+.html-viewer .list-tree {
+	display: block;
+	margin: auto;
+}
+
+.html-viewer .list-tree > ul > li {
+	font-size: 18px;
+	line-height: 1.5em;
+}
+
+.html-viewer .list-tree a {
+	color: #007;
+	transition: 0.4s;
+}
+
+.html-viewer .list-tree a:hover {
+	text-shadow: 0 0 4px rgba(0, 0, 150, 0.5);
+}
+
+.html-viewer .list-tree ul {
+	margin-bottom: 20px;
+}
+
+.html-viewer h2, .html-viewer h3 {
+	background: -webkit-linear-gradient(
+		rgba(200, 200, 200, 1),
+		rgba(50, 50, 50, 1)
+	);
+	margin: 1em 0;
+	text-align: center;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	text-shadow: none;
+}
+
+.html-viewer h2 {
+	font-size:40px;
+}
+
+.html-viewer h3 {
+	font-size: 20px;
+	background: -webkit-linear-gradient(
+		rgba(200, 200, 200, 1),
+		rgba(50, 50, 50, 1)
+	);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.html-viewer li {
+	font-size: 14px;
+}
 
 /* Volume Control */
 
