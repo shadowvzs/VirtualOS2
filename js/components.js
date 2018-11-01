@@ -380,6 +380,69 @@ const componentData = {
 				const icon = targetContainer.lastChild;
 				icon.querySelector("input").onblur = inputBlur;
 				icon.querySelector("input").onkeyup = nameConfirm;
+				createDragable(icon);
+				if (item.type == "dir" && !item.readonly) {
+					createDropTarget(icon);
+				}
+			}
+
+			function init(list) {
+				for (const item of list) {
+					if (!item.ondesktop) { continue; }
+					CreateDesktopIcon(item);
+				}
+				createDropTarget(defaultContainer);
+				shared.createDropTarget = createDropTarget;
+				shared.createDragable = createDragable;
+			}
+
+			function createDragable(e) {
+				e.ondragstart = dragStart;
+				e.draggable = true;
+			}
+
+			function createDropTarget(e) {
+				e.ondragover = onDragOver;
+				e.ondrop = onDrop;
+			}
+
+			function onDragOver(ev) {
+				ev.preventDefault();
+			}
+
+			function onDrop(ev) {
+				let e = ev.target;
+				ev.preventDefault();
+				ev.stopPropagation();
+				if (e.tagName == "IMG") {
+					e = e.parentNode.parentNode;
+				}
+				const data = e.dataset,
+					{ container, type, itemId = false, id = false } = data,
+					targetId = itemId || id || false,
+					sourceId = ev.dataTransfer.getData("text") || false;
+				if (!targetId || !sourceId || targetId == sourceId) {
+					return;
+				}
+				const item = components[ds].copyItem(targetId, sourceId, true);
+				if (item) {
+					const sourceIcons = document.body.querySelectorAll(`.de-icon[data-item-id="${sourceId}"]`);
+					if (type == "free") {
+						const targetWin = document.body.querySelector(`.content[data-id="${id}"]`)
+							max = sourceIcons.length;
+						if (targetWin) {
+							CreateDesktopIcon(item, targetWin, container == -1);
+						}
+					}
+					for (const icon of sourceIcons) {
+						icon.remove();
+					}
+				}
+			}
+
+			function dragStart(ev) {
+				const id = ev.target.parentNode.parentNode.dataset.id;
+				ev.dataTransfer.setData("Text", id);
 			}
 
 			function inputBlur(e) {
@@ -442,13 +505,6 @@ const componentData = {
 					return defaultContainer;
 				}
 				return window.body;
-			}
-
-			function init(list) {
-				for (const item of list) {
-					if (!item.ondesktop) { continue; }
-					CreateDesktopIcon(item);
-				}
 			}
 
 			function toggleRename(e) {
@@ -745,7 +801,7 @@ const componentData = {
 			}
 
 			function blurCb(ev) {
-				startMenu.classList.toggle('show');
+				startMenu.classList.remove('show');
 			}
 
 			function toggleList(id) {
@@ -934,10 +990,13 @@ const componentData = {
 
 				if (!item) {
 					return console.log("File corrupt or not exist anymore!");
+				} else if (item.url && item.type == "url") {
+					window.open (item.url,"mywindow");
+				} else if (item.text && item.type == "alert") {
+					alert(item.text);
 				} else if (!app || !app.open) {
 					return console.log("Not exist associated application!");
 				}
-				app.open(e, ev);
 			}
 
 			return {
@@ -953,6 +1012,9 @@ const componentData = {
 				get(id) {
 					return searchInVfs(vfs.child, id);
 				},
+				getDatabase() {
+					return vfs;
+				},
 				search(items, id) {
 					return searchInVfs(items, id);
 				},
@@ -961,9 +1023,6 @@ const componentData = {
 				},
 				save() {
 					return save();// save into localstorage
-				},
-				getDatabase() {
-					return vfs;
 				}
 			}
 		},
@@ -1081,6 +1140,7 @@ const componentData = {
 					win.body.dataset.type = "free";
 					win.body.dataset.container = win.id;
 					win.body.dataset.contextmenu = "desktopManager.createMenu";
+					shared.createDropTarget(win.body);
 					windows.push(win);
 				} else if (d.container != "-1") {
 					win = components[window].getWindow(d.container);
@@ -1338,8 +1398,8 @@ const componentData = {
 					ev.preventDefault();
 					minimize(e.dataset.id);
 				},
-				getWindow(id) {
-					return windows[id] || null;
+				getWindow(id = false) {
+					return !id ? windows : windows[id] || null;
 				},
 				register(options) {
 					return create(options);
@@ -1369,7 +1429,7 @@ const componentData = {
 			}
 
 			function blurCb(ev) {
-				toggle(ev.target);
+				toggle(ev.target, "remove");
 			}
 
 			function add(appData) {
@@ -1379,8 +1439,8 @@ const componentData = {
 				container.insertAdjacentHTML('beforeend', template.icon(appData));
 			}
 
-			function toggle(e) {
-				container.classList.toggle('d-iblock');
+			function toggle(e, type = "toggle") {
+				container.classList[type]('d-iblock');
 				container.focus();
 			}
 
@@ -1439,15 +1499,18 @@ const componentData = {
 						return template.runningTasks(obj);
 					},
 					runningTaskList(objList) {
+						if (!objList) { return ""; }
 						const header = template.runningTaskHeader();
 						let body = [];
 						for (const key in objList) {
-							const id = objList[key].dom.dataset.id || "";
+							console.log(objList);
+							const id = key,
+								o = objList[key];
 							body.push(template.taskLine({
-								name: key,
+								name: o.title +" "+ (o.subTitle || ""),
 								id: id,
-								group: objList[key].dom.dataset.group || "",
-								action: template.killBtn(id, group)
+								group: o.source || "",
+								action: template.killBtn(id, o.source)
 							}));
 
 						}
@@ -1460,7 +1523,7 @@ const componentData = {
 						}
 						return `
 						<div class="row" data-group="${d.group}" data-id="${d.id}">
-							<div class="cell" data-type="name">> ${d.name} </div>
+							<div class="cell" data-type="name"> ${d.name} </div>
 							<div class="cell" data-type="id" title="${d.id}">${d.id.substr(0, 8)}</div>
 							<div class="cell" data-type="action">${d.action}</div>
 						</div>`;
@@ -1496,13 +1559,13 @@ const componentData = {
 						source: group,
 						id = false,
 						title,
-						subtitle = ""
+						subTitle = ""
 					} = options,
 				 	doms = getGroupTask(group, id),
 					taskOption = {
 						group,
 						id,
-						name: (title+subtitle)
+						name: title +" "+ subTitle
 					};
 				windows.body.insertAdjacentHTML('beforeend', template.taskLine(taskOption));
 			}
@@ -1527,7 +1590,7 @@ const componentData = {
 				if (!win) {
 					return console.log("Failed to create new window!");
 				}
-				win.body.innerHTML = template.runningTaskList(taskGroup);
+				win.body.innerHTML = template.runningTaskList(components[window].getWindow());
 				windows = win;
 				win.addToList = addToList;
 				win.removeFromList = removeFromList;
@@ -1555,7 +1618,7 @@ const componentData = {
 			}
 
 			function blurCb(e) {
-				toggle(e.target);
+				toggle(e.target, "add");
 			}
 
 			function add(options) {
@@ -1586,10 +1649,9 @@ const componentData = {
 				}
 			}
 
-			function toggle(e) {
-				const {id, group} = e.dataset
-					status = taskGroup[group].subGroup.classList.contains("d-none");
-				taskGroup[group].subGroup.classList.toggle('d-none');
+			function toggle(e, type = "toggle") {
+				const {id, group} = e.dataset;
+				taskGroup[group].subGroup.classList[type]('d-none');
 
 				if (!selectedGroup) {
 					selectedGroup = id;

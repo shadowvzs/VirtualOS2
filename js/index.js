@@ -7,7 +7,7 @@ function Core() {
 			"html": "htmlViewer",
 			"dir": "fileExplorer",
 			"alert": "alert",
-			"url": "link",
+			"url": "fileSystem",
 			"shell": "terminal",
 			"task": "taskManager",
 			"display": "desktopManager"
@@ -67,7 +67,6 @@ function Core() {
 		if (target.length < 2 || !c[target[0]]) {
 			return console.log("Component not exist!");
 		}
-
 		shared.components['audioManager'].play(
 			target[1] == "close" ? "close" : "click"
 		);
