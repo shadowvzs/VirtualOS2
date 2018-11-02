@@ -524,6 +524,7 @@ time#clock:hover:after {
 .html-viewer .list-tree {
 	display: block;
 	margin: auto;
+	text-align: center;
 }
 
 .html-viewer .list-tree > ul > li {
@@ -542,6 +543,11 @@ time#clock:hover:after {
 
 .html-viewer .list-tree ul {
 	margin-bottom: 20px;
+	text-align: left;
+}
+
+.html-viewer .list-tree > ul {
+	display: inline-block;
 }
 
 .html-viewer h2, .html-viewer h3 {
@@ -572,6 +578,10 @@ time#clock:hover:after {
 
 .html-viewer li {
 	font-size: 14px;
+}
+
+.html-viewer .image-container a img {
+	padding: 10px;
 }
 
 /* Volume Control */

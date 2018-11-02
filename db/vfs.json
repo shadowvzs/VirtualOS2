@@ -13,18 +13,6 @@
 			"type":"dir",
 			"child":[
 				{
-				   "name": "This Page",
-				   "id":"3aWOGll0vqrVjZpVvg89mIH5jL84EUxN",
-				   "description": "CSS, Javascript, jQuery, desktop imitation with JSON",
-				   "icon":"doc",
-				   "type":"html",
-				   "createtime":1503812702,
-				   "lastmodify":1503812702,
-				   "readonly":false,
-				   "onstartmenu": true,
-				   "url":"resume_info.html"
-				},
-				{
 				   "name": "pwAdmin",
 				   "id":"JAY4DxJLuFNNBvfhDkeKMZ8CWYInugb2",
 				   "description": "PHP (5.3+), CSS, Javascript, MySQL, Ajax + JSON",
@@ -37,19 +25,7 @@
 				   "url":"pwadmin.html"
 				},
 				{
-				   "name": "Gyozelem.ro",
-				   "id":"b776gaBzEhf3MGnQwA041zIH7XIucMsw",
-				   "description": "PHP (5.3-), CSS, Javascript, MySQL",
-				   "icon":"doc",
-				   "type":"html",
-				   "createtime":1503812702,
-				   "lastmodify":1503812702,
-				   "readonly":false,
-				   "onstartmenu": true,
-				   "url":"gyozelem.ro.html"
-				},
-				{
-				   "name": "Overall",
+				   "name": "Projects",
 				   "id":"xmJevvUwmqqE0fSJt3Q5MIOe6fHB63j9",
 				   "description": "Every references collected into this page",
 				   "icon":"doc",
@@ -58,7 +34,7 @@
 				   "lastmodify":1503812702,
 				   "readonly":false,
 				   "onstartmenu": true,
-				   "url":"references.html"
+				   "url":"projects.html"
 				}
 			]
 		},
@@ -74,7 +50,7 @@
 			"lastmodify":1503812702,
 			"type":"dir",
 			"child":[
-				{
+                {
 				   "name": "My Resume [EN]",
 				   "id":"90FmXHkSWNdiHY96AQkQTscNvxm3PPlC",
 				   "description": "This is my resume (english version)",
@@ -84,7 +60,31 @@
 				   "lastmodify":1503812702,
 				   "readonly":false,
 				   "onstartmenu": true,
-				   "url":"resume.html"
+				   "url":"resume_en.html"
+                },
+				{
+				   "name": "Curriculum vitae",
+				   "id":"90FmXHkSWNdiHY96AQkQTscNvxm3PPl1",
+				   "description": "CV -ul meu",
+				   "icon":"doc",
+				   "type":"html",
+				   "createtime":1503812702,
+				   "lastmodify":1503812702,
+				   "readonly":false,
+				   "onstartmenu": true,
+				   "url":"resume_ro.html"
+                },
+				{
+				   "name": "Önéletrajz",
+				   "id":"90FmXHkSWNdiHY96AQkQTscNvxm3PPl2",
+				   "description": "Az önéletrajz",
+				   "icon":"doc",
+				   "type":"html",
+				   "createtime":1503812702,
+				   "lastmodify":1503812702,
+				   "readonly":false,
+				   "onstartmenu": true,
+				   "url":"resume_hu.html"
 				}
 			]
 		},
@@ -488,6 +488,19 @@
            		   "readonly":true
            		}
 			]
+		},
+		{
+			"name": "CLICK TO ME",
+			"id": "zffNce2tJprbnelmwtx8xBymNsyCY5LB",
+			"description": "Guide for first time user",
+			"icon":"youtube",
+			"readonly":false,
+			"ondesktop": true,
+			"onstartmenu": false,
+			"createtime":1503812702,
+			"lastmodify":1503812702,
+			"type":"html",
+			"url":"page_guide.html"
 		}
 	]
 }

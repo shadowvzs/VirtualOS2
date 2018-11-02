@@ -827,9 +827,14 @@ const componentData = {
 				select(e) {
 					select(e.dataset.extra);
 				},
-				toggle() {
-					startMenu.classList.toggle('show');
-					startMenu.focus();
+				toggle(e, ev) {
+					ev.preventDefault();
+					if (document.activeElement != startMenu) {
+						startMenu.classList.toggle('show');
+						startMenu.focus();
+					} else {
+						startMenu.classList.remove('show');
+					}
 				},
 				remove() {
 
@@ -997,6 +1002,7 @@ const componentData = {
 				} else if (!app || !app.open) {
 					return console.log("Not exist associated application!");
 				}
+				app.open(e, ev);
 			}
 
 			return {
@@ -1417,7 +1423,7 @@ const componentData = {
 				toggleButton = document.body.querySelector(settings.toggle),
 				template = {
 					icon(appData) {
-						return `<figure class="btn-task" data-click="${appData.constructorName}.launch">
+						return `<figure class="btn-task" data-click="${appData.constructorName}.launch" title="${appData.description}">
 								<img class="mini-icon" src="img/startmenu/${appData.icon}.png">
 							</figure>`;
 					}
@@ -1723,7 +1729,7 @@ const componentData = {
 					click: new Audio("audio/click.mp3"),
 					close: new Audio("audio/close.mp3")
 				};
-			let volume = 20,
+			let volume = localStorage.getItem('volume') || 20,
 				dom = null;
 
 			function toggle(e, ev) {
@@ -1752,6 +1758,7 @@ const componentData = {
 				e.preventDefault();
 				dom.amount.textContent = v;
 				volume = v;
+				localStorage.setItem('volume', v);
 			}
 
 			function play(name) {
