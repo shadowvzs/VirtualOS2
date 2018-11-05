@@ -827,14 +827,9 @@ const componentData = {
 				select(e) {
 					select(e.dataset.extra);
 				},
-				toggle(e, ev) {
-					ev.preventDefault();
-					if (document.activeElement != startMenu) {
-						startMenu.classList.toggle('show');
-						startMenu.focus();
-					} else {
-						startMenu.classList.remove('show');
-					}
+				toggle() {
+					startMenu.classList.toggle('show');
+					startMenu.focus();
 				},
 				remove() {
 

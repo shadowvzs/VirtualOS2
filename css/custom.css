@@ -17,6 +17,12 @@ section {
 	width: 100vw;
 }
 
+code {
+	white-space: pre;
+	text-align: left;
+	display: inline-block;
+}
+
 #desktop {
 	position: relative;
 	flex: 1;
