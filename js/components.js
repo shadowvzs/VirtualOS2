@@ -551,7 +551,7 @@ const componentData = {
 						["New File", cName, "createNew", [targetId, container, 'html']],
 						["Paste", cName, "paste", [targetId, container, type]],
 						//["Arrange Icon", relationship.clipboard, "addItems", ['fs', id, 'true']],
-						["Terminal", cName, "remove", [targetId]],
+						["Terminal", "terminal", "launch", [targetId]],
 						//["Settings", display, "launch", [targetId]],
 						["Properties", display, "launch", [targetId]],
 					];
@@ -585,6 +585,10 @@ const componentData = {
 						list[3][1] = false;
 						list.splice(3, 1);
 					}
+				}
+
+				if (targetId != -1) {
+					list.splice(-1,0, ["Link", cName, "link", [targetId]]);
 				}
 
 				if (list) {
@@ -722,6 +726,19 @@ const componentData = {
 				icon.src = './img/startmenu/'+imgName;
 			}
 
+			function link(e, ev) {
+				const el = document.createElement('textarea');
+				let loc = location.href.split("#"),
+					link = loc[0] + "#" + e.dataset.extra || "";
+				el.value = link;
+				document.body.appendChild(el);
+				el.select();
+				document.execCommand('copy');
+				el.remove();
+				alert("Url was copied into clipboard!");
+
+			}
+
 			return {
 				close(win) {
 					close(win);
@@ -740,6 +757,9 @@ const componentData = {
 				},
 				launch(e, ev) {
 					toggleFullscreen();
+				},
+				link(e, ev) {
+					link(e, ev);
 				},
 				paste(e, ev) {
 					paste(e);
@@ -875,6 +895,7 @@ const componentData = {
 			}
 
 			function init() {
+				const hash = location.hash ? location.hash.substr(1) : false;
 				let desktopItems = [],
 					startMenuItems = [],
 					item;
@@ -894,6 +915,22 @@ const componentData = {
 				if (startMenuItems.length) {
 					components[relationship.startmenu].init(startMenuItems);
 				}
+
+				if (hash) {
+					item = searchInVfs(vfs.child, hash);
+					if (item) {
+						const e = {
+							dataset: {
+								container: -1,
+								id: item.id,
+								type: "free",
+								new: "true"
+							}
+						}
+						openItem(item, e);
+					}
+				}
+				console.log(hash);
 			}
 
 			function searchInVfs(items, id) {
@@ -998,14 +1035,11 @@ const componentData = {
 				return itemCopy;
 			}
 
-
-			function execute(e, ev) {
-				const id = e.dataset.id;
-				if (!id) {
-					return console.log("This file not have id!");
+			function openItem(item, e = {}, ev = {} ) {
+				if (!item) {
+					return;
 				}
-				const item = searchInVfs(vfs.child, id),
-					app = components[assoc[item.type] || "-"] || false;
+				const app = components[assoc[item.type] || "-"] || false;
 
 				if (!item) {
 					return console.log("File corrupt or not exist anymore!");
@@ -1017,6 +1051,14 @@ const componentData = {
 					return console.log("Not exist associated application!");
 				}
 				app.open(e, ev);
+			}
+
+			function execute(e, ev) {
+				const id = e.dataset.id;
+				if (!id) {
+					return console.log("This file not have id!");
+				}
+				openItem(searchInVfs(vfs.child, id), e, ev);
 			}
 
 			return {
