@@ -67,9 +67,10 @@ const componentData = {
 			id: "dsktpmngr",
 			name: "Properties",
 			description: "Responsable for create, arrange icons, send data to context menu",
-			icon: "sys_display",
+			icon: "fullscreen_1",
 			maxProc: 20,
 			container: '.desktop-container',
+			launchbar: true,
 			windowClass: ["file-properties", "window-light-blue"],
 			relationship: {
 				datasource: 'fileSystem',
@@ -177,21 +178,7 @@ const componentData = {
 				window: 'windowManager',
 				datasource: 'fileSystem',
 			}
-		},
-		controlPanel: {
-			id: "ctrlpnl",
-			name: "Control Panel",
-			description: "Responsable for control panel and for base app",
-			icon: "settings",
-			windowClass: ["system", "window-light-blue"],
-			randomPosition: true,
-			maxProc: 1,
-			relationship: {
-				window: 'windowManager',
-				datasource: 'fileSystem',
-				desktop: 'desktopManager',
-			}
-		},
+		}
 	},
 	classes: {
 		clockManager(settings, shared = false) {
@@ -332,6 +319,7 @@ const componentData = {
 				cName = settings.constructorName,
 				relationship = settings.relationship,
 				{datasource: ds, window: win, display} = relationship,
+				launcherBar = document.body.querySelector(`.task-app-list`),
 				template = {
 					tooltip(item) {
 						return `ID: ${item.id}&#013Description: ${item.description}&#013;`;
@@ -361,7 +349,8 @@ const componentData = {
 					}
 				};
 			let icons = [],
-				windows = [];
+				windows = [],
+				fullScreen = false;
 
 			function CreateDesktopIcon(item, targetContainer = defaultContainer, newWindow = true) {
 				targetContainer.insertAdjacentHTML('beforeend', `<div class="de-icon no-select" data-item-id="${item.id}">
@@ -706,6 +695,33 @@ const componentData = {
 				}
 			}
 
+			function toggleFullscreen() {
+				fullScreen = !fullScreen;
+				const icon = launcherBar.querySelector(`[data-click="${cName}.launch"] img`),
+					imgName = 'fullscreen_' + +fullScreen+'.png';
+				if (!fullScreen) {
+					if(document.exitFullscreen) {
+						document.exitFullscreen();
+					} else if(document.mozCancelFullScreen) {
+						document.mozCancelFullScreen();
+					} else if(document.webkitExitFullscreen) {
+						document.webkitExitFullscreen();
+					}
+				} else {
+					const e = document.documentElement;
+					if(e.requestFullscreen) {
+						e.requestFullscreen();
+					} else if(e.mozRequestFullScreen) {
+						e.mozRequestFullScreen();
+					} else if(e.webkitRequestFullscreen) {
+						e.webkitRequestFullscreen();
+					} else if(e.msRequestFullscreen) {
+						e.msRequestFullscreen();
+					}
+				}
+				icon.src = './img/startmenu/'+imgName;
+			}
+
 			return {
 				close(win) {
 					close(win);
@@ -721,6 +737,9 @@ const componentData = {
 				},
 				deleteIcon(id) {
 					deleteIcon(id);
+				},
+				launch(e, ev) {
+					toggleFullscreen();
 				},
 				paste(e, ev) {
 					paste(e);
@@ -1288,7 +1307,7 @@ const componentData = {
 				let width, height;
 				if (winSize.full) {
 					width = "100%";
-					height = "100%";
+					height = "calc(100% - 34px)";
 					dom.style.top = '0px';
 					dom.style.left = '0px';
 				} else if (options.randomPosition) {
@@ -2295,54 +2314,6 @@ const componentData = {
 
 				}
 			}
-		},
-
-
-		controlPanel(settings, shared = false) {
-			const { guid, components } = shared,
-				{ window } = settings.relationship,
-				cName = settings.constructorName,
-				template = {};
-
-			let windows = null,
-				configs;
-
-			function createNewWindow() {
-				const options = {
-					data: false,
-					appClass: settings.windowClass,
-					title: settings.name,
-					source: settings.constructorName,
-					icon: settings.icon,
-				};
-
-				return components[window].register(options);
-			}
-
-
-			function start(e, ev) {
-
-			}
-
-
-			function close(e) {
-				windows = null;
-			}
-
-			return {
-				apply(e, ev) {
-					applyChanges(true);
-				},
-				close(e, ev) {
-					close(e);
-				},
-				launch(e, ev) {
-					start(e, ev);
-				},
-				remove() {
-
-				}
-			}
-		},
+		}
 	}
 }

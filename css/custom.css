@@ -6,6 +6,7 @@ html {
 
 body {
 	position: absolute;
+	overflow: hidden;
 	height: 100%;
 	width: 100%;
 }
@@ -514,6 +515,7 @@ time#clock:hover:after {
 
 .html-viewer .html-content {
 	font-family: cursive;
+	padding-bottom: 40px;
 }
 
 .html-viewer .table-left {
@@ -588,6 +590,11 @@ time#clock:hover:after {
 
 .html-viewer .image-container a img {
 	padding: 10px;
+}
+
+.html-viewer iframe.big-responsive {
+	width: 80vw;
+	height: calc(100vw*0.8/1.77);
 }
 
 /* Volume Control */

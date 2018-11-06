@@ -134,7 +134,7 @@
         			"icon":"folder",
         			"readonly":false,
         			"ondesktop":true,
-        			"onstartmenu":true,
+        			"onstartmenu":false,
         			"createtime":1503812702,
         			"lastmodify":1503812702,
         			"type":"dir",
@@ -229,7 +229,7 @@
                    "url":"pwadmin.html"
                 },
                 {
-                   "name":"Projects",
+                   "name":"Overview",
                    "id":"xmJevvUwmqqE0fSJt3Q5MIOe6fHB63j9",
                    "description":"Every references collected into this page",
                    "icon":"doc",
@@ -239,11 +239,24 @@
                    "readonly":false,
                    "onstartmenu":true,
                    "url":"projects.html"
+               },
+                {
+                   "name":"VirtualOS",
+                   "id":"yx1vvNy5Y6EbUiai1Q566yWihRxaU4yk",
+                   "description":"VirtualOS log :)",
+                   "icon":"file",
+                   "type":"html",
+                   "createtime":1503812702,
+                   "lastmodify":1503812702,
+                   "readonly":false,
+                   "ondesktop":false,
+                   "onstartmenu":true,
+                   "url":"pagelog.html"
                 }
             ]
         },
         {
-			"name":"Interactive Guides",
+			"name":"Terminal Guides",
 			"id":"BadBmHrbSujgTAqHEJXy87BtCCzvNXL1",
 			"description":"Guide collection",
 			"icon":"folder",
@@ -300,6 +313,17 @@
 					"lastmodify":1503812702,
 					"type":"dir",
 					"child":[
+						{
+						   "name":"Docker: Basics",
+						   "id":"6KN00un5agjllvOya2hRAlfEBRt0rjKw",
+						   "description":"Basics, how to start the git",
+						   "icon":"shell",
+						   "type":"shell",
+						   "createtime":1503812702,
+						   "lastmodify":1503812702,
+						   "readonly":false,
+						   "url":"docker_1_basics.sh"
+						}
                     ]
                 },
                 {
@@ -412,7 +436,7 @@
                 {
                     "name":"Tools",
                     "id":"Z401HcNaYnlBEjg0LJ2Z9MkpsCdlV4iq",
-                    "description":"My php collection",
+                    "description":"Optimizations, tweaks and tools for web development",
                     "icon":"folder",
                     "readonly":false,
                     "onstartmenu":true,
@@ -423,14 +447,14 @@
                         {
                            "name":"Online tools",
                            "id":"nz190I24mC5Ea8cYAOTSrH4af1xmDukh",
-                           "description":"CURL  put, post, get, delete with mailerlite groups",
+                           "description":"Online tools like minifier, beautifier, editors, converters and so many else",
                            "icon":"file",
                            "type":"html",
                            "createtime":1503812702,
                            "lastmodify":1503812702,
                            "readonly":false,
                            "onstartmenu":true,
-                           "url":"tools.html"
+                           "url":"online_tools.html"
                         }
                     ]
                 },
